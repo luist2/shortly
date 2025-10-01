@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shortly_API.Data;
 
@@ -11,9 +12,11 @@ using Shortly_API.Data;
 namespace Shortly_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251001135402_AddShortUrlsTable")]
+    partial class AddShortUrlsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,13 +64,9 @@ namespace Shortly_API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ShortCode")
-                        .IsUnique()
-                        .HasDatabaseName("IX_ShortUrls_ShortCode");
+                        .IsUnique();
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("IsActive", "ShortCode")
-                        .HasDatabaseName("IX_ShortUrls_IsActive_ShortCode");
 
                     b.ToTable("ShortUrls");
                 });
