@@ -10,6 +10,6 @@ namespace Shortly_API.Models.ShortUrlDTOs
         public string OriginalUrl { get; set; } = string.Empty;
 
         // Opcional: permitir expiración definida por el usuario
-        public DateTime? ExpiresAt { get; set; }
+        // public DateTime? ExpiresAt { get; set; }
     }
 }
