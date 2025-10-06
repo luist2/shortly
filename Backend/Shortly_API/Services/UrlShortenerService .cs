@@ -2,18 +2,19 @@
 using Shortly_API.Data;
 using Shortly_API.Entities;
 using Shortly_API.Models.ShortUrlDTOs;
+using Shortly_API.Repositories;
 
 namespace Shortly_API.Services
 {
     public class UrlShortenerService : IUrlShortenerService
     {
-        private readonly AppDbContext _context;
+        private readonly IShortUrlRepository _repository;
         private readonly ILogger<UrlShortenerService> _logger;
         private readonly IConfiguration _config;
 
-        public UrlShortenerService(AppDbContext context, ILogger<UrlShortenerService> logger, IConfiguration config)
+        public UrlShortenerService(IShortUrlRepository repository, ILogger<UrlShortenerService> logger, IConfiguration config)
         {
-            _context = context;
+            _repository = repository;
             _logger = logger;
             _config = config;
         }
@@ -38,7 +39,6 @@ namespace Shortly_API.Services
 
             // Lógica para generar un código corto único
             string shortCode;
-            bool exists;
             int retries = 0;
 
             do
@@ -48,29 +48,28 @@ namespace Shortly_API.Services
                     throw new Exception("Failed to generate a unique short code after multiple attempts.");
                 }
                 shortCode = ShortCodeGenerator.Generate(8);
-                exists = await _context.ShortUrls.AnyAsync(su => su.ShortCode == shortCode);
 
-            } while (exists);
+            } while (await _repository.ExistsAsync(shortCode));
 
-            var shortUrlEntity = new ShortUrl
+            var shortUrl = new ShortUrl
             {
-                OriginalUrl = originalUrl,
                 ShortCode = shortCode,
+                OriginalUrl = originalUrl,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
 
-            _context.ShortUrls.Add(shortUrlEntity);
-            await _context.SaveChangesAsync();
+            await _repository.CreateAsync(shortUrl);
+            await _repository.SaveChangesAsync();
 
             return new ShortUrlResponse
             {
-                ShortCode = shortUrlEntity.ShortCode,
-                OriginalUrl = originalUrl,
-                ShortUrl = $"{baseDomain}/{shortUrlEntity.ShortCode}",
-                CreatedAt = shortUrlEntity.CreatedAt,
-                ClickCount = shortUrlEntity.ClickCount
+                ShortCode = shortUrl.ShortCode,
+                OriginalUrl = shortUrl.OriginalUrl,
+                ShortUrl = $"{baseDomain}/{shortUrl.ShortCode}",
+                CreatedAt = shortUrl.CreatedAt,
+                ClickCount = shortUrl.ClickCount
             };
         }
     }
