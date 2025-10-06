@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Shortly_API.Data;
+using Shortly_API.Repositories;
 using Shortly_API.Services;
 using System;
 using System.Text;
@@ -39,6 +40,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHttpClient();
 
+builder.Services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
+
 builder.Services.AddScoped<IUrlShortenerService, UrlShortenerService>();
 
 var app = builder.Build();
@@ -62,5 +65,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapControllerRoute(
+    name: "redirect",
+    pattern: "{shortCode}",
+    defaults: new { controller = "Redirect", action = "RedirectToOriginalUrl" }
+);
 
 app.Run();
