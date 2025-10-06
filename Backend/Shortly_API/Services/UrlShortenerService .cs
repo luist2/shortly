@@ -72,5 +72,34 @@ namespace Shortly_API.Services
                 ClickCount = shortUrl.ClickCount
             };
         }
+
+        public async Task<string> GetOriginalUrlAsync(string shortCode)
+        {
+            if (string.IsNullOrWhiteSpace(shortCode))
+            {
+                throw new ArgumentException("Short code cannot be null or empty.");
+            }
+
+            var shortUrl = await _repository.GetByShortCodeAsync(shortCode);
+
+            if (shortUrl == null)
+            {
+                throw new KeyNotFoundException("Short URL not found.");
+            }
+
+            // Verificar expiración (si aplica)
+            if (shortUrl.ExpiresAt.HasValue && shortUrl.ExpiresAt.Value < DateTime.UtcNow)
+            {
+                _logger.LogWarning("Short URL with code {ShortCode} has expired at {ExpiresAt}.", shortCode, shortUrl.ExpiresAt);
+                throw new InvalidOperationException("This short URL has expired.");
+            }
+
+            // Tracking de clicks
+            await _repository.IncrementClickCountAsync(shortUrl);
+
+            _logger.LogInformation("Short URL with code {ShortCode} accessed. Total clicks: {ClickCount}.", shortCode, shortUrl.ClickCount);
+
+            return shortUrl.OriginalUrl;
+        }
     }
 }
