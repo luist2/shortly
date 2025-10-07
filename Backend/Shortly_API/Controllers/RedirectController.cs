@@ -20,22 +20,28 @@ namespace Shortly_API.Controllers
         [HttpGet("{shortCode}")]
         public async Task<IActionResult> RedirectToOriginalUrl(string shortCode)
         {
+            if (string.IsNullOrWhiteSpace(shortCode))
+            {
+                _logger.LogWarning("Invalid short code provided.");
+                return BadRequest(new { message = "Short code cannot be empty." });
+            }
+
             try
             {
                 var originalUrl = await _urlShortenerService.GetOriginalUrlAsync(shortCode);
                 
-                return RedirectPermanent(originalUrl);
+                return Redirect(originalUrl);
             }
             catch (KeyNotFoundException)
             {
                 _logger.LogWarning("Short URL not found: {ShortCode}", shortCode);
-                return NotFound(new { message = "Short URL not found." });
+                return NotFound(new { message = "Short URL not found or inactive." });
 
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("Short URL with code {ShortCode} is invalid or expired: {Message}", shortCode, ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(StatusCodes.Status410Gone, new { message = "This short URL has expired." });
             }
             catch (Exception ex)
             {
