@@ -29,6 +29,15 @@ namespace Shortly_API.Repositories
                 .FirstOrDefaultAsync(su => su.ShortCode == shortCode && su.IsActive);
         }
 
+        public Task<List<ShortUrl>> GetByUserIdAsync(Guid userId)
+        {
+            // Devolver URLs activas y ordenadas por fecha de creación descendente
+            return _context.ShortUrls
+                .Where(su => su.UserId == userId && su.IsActive)
+                .OrderByDescending(su => su.CreatedAt)
+                .ToListAsync();
+        }
+
         public async Task IncrementClickCountAsync(ShortUrl shortUrl)
         {
             shortUrl.ClickCount++;

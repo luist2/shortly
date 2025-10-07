@@ -40,5 +40,19 @@ namespace Shortly_API.Controllers
 
             return Ok(result);
         }
+
+        // GET /api/urls
+        [HttpGet("urls")]
+        public async Task<ActionResult<List<ShortUrlResponse>>> GetUserUrls()
+        {
+            // Obtener el Id del usuario desde el token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null) return Unauthorized();
+            // Checkear que el claim no sea nulo y convertirlo a Guid
+            var userId = Guid.Parse(userIdClaim.Value);
+
+            var urls = await _urlShortenerService.GetUserUrlsAsync(userId);
+            return Ok(urls);
+        }
     }
 }

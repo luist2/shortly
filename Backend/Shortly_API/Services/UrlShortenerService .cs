@@ -101,5 +101,24 @@ namespace Shortly_API.Services
 
             return shortUrl.OriginalUrl;
         }
+
+        public async Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId)
+        {
+            if (userId == Guid.Empty){
+                throw new ArgumentException("User ID cannot be empty.");
+            }
+
+            var baseDomain = _config["AppSettings:BaseDomain"];
+            var shortUrls = await _repository.GetByUserIdAsync(userId);
+
+            return shortUrls.Select(su => new ShortUrlResponse
+            {
+                ShortCode = su.ShortCode,
+                OriginalUrl = su.OriginalUrl,
+                ShortUrl = $"{baseDomain}/{su.ShortCode}",
+                CreatedAt = su.CreatedAt,
+                ClickCount = su.ClickCount
+            }).ToList();
+        }
     }
 }

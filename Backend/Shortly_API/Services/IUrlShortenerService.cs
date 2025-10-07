@@ -8,5 +8,7 @@ namespace Shortly_API.Services
         Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl, Guid userId);
         // Recupera la URL original asociada con el código corto proporcionado.
         Task<string> GetOriginalUrlAsync(string shortCode);
+
+        Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId);
     }
 }
