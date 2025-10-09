@@ -102,6 +102,40 @@ namespace Shortly_API.Services
             return shortUrl.OriginalUrl;
         }
 
+        public async Task<ShortUrlStatsResponse> GetUrlStatsAsync(string shortCode, Guid userId)
+        {
+            if (string.IsNullOrWhiteSpace(shortCode))
+            {
+                throw new ArgumentException("Short code cannot be null or empty.");
+            }
+            if (userId == Guid.Empty)
+            {
+                throw new ArgumentException("User ID cannot be empty.");
+            }
+
+            var shortUrl = await _repository.GetByShortCodeAndUserIdAsync(shortCode, userId);
+
+            if (shortUrl == null)
+            {
+                throw new KeyNotFoundException("Short URL not found or does not belong to the user.");
+            }
+
+            var response = new ShortUrlStatsResponse
+            {
+                ShortCode = shortUrl.ShortCode,
+                OriginalUrl = shortUrl.OriginalUrl,
+                CreatedAt = shortUrl.CreatedAt,
+                ClickCount = shortUrl.ClickCount,
+                LastAccessedAt = shortUrl.LastAccessedAt,
+                ExpiresAt = shortUrl.ExpiresAt,
+                IsActive = shortUrl.IsActive
+            };
+
+            _logger.LogInformation("User {UserId} retrieved stats for short URL {ShortCode}.", userId, shortCode);
+
+            return response;
+        }
+
         public async Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId)
         {
             if (userId == Guid.Empty){
@@ -111,7 +145,7 @@ namespace Shortly_API.Services
             var baseDomain = _config["AppSettings:BaseDomain"];
             var shortUrls = await _repository.GetByUserIdAsync(userId);
 
-            return shortUrls.Select(su => new ShortUrlResponse
+            var response = shortUrls.Select(su => new ShortUrlResponse
             {
                 ShortCode = su.ShortCode,
                 OriginalUrl = su.OriginalUrl,
@@ -119,6 +153,10 @@ namespace Shortly_API.Services
                 CreatedAt = su.CreatedAt,
                 ClickCount = su.ClickCount
             }).ToList();
+
+            _logger.LogInformation("User {UserId} retrieved {Count} short URLs.", userId, response.Count);
+
+            return response;
         }
     }
 }

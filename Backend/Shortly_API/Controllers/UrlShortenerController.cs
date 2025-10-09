@@ -54,5 +54,31 @@ namespace Shortly_API.Controllers
             var urls = await _urlShortenerService.GetUserUrlsAsync(userId);
             return Ok(urls);
         }
+
+        // GET /api/urls/{shortCode}
+        [HttpGet("urls/{shortCode}")]
+        public async Task<ActionResult<ShortUrlStatsResponse>> GetUrlStats(string shortCode)
+        {
+            try
+            {                 
+                // Obtener el Id del usuario desde el token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null) return Unauthorized();
+                // Checkear que el claim no sea nulo y convertirlo a Guid
+                var userId = Guid.Parse(userIdClaim.Value);
+
+                var stats = await _urlShortenerService.GetUrlStatsAsync(shortCode, userId);
+
+                return Ok(stats);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Short URL not found." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while processing your request." });
+            }
+        }
     }
 }

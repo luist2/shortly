@@ -6,6 +6,7 @@ namespace Shortly_API.Repositories
     {
         Task CreateAsync(ShortUrl shortUrl);
         Task<ShortUrl?> GetByShortCodeAsync(string shortCode);
+        Task<ShortUrl?> GetByShortCodeAndUserIdAsync(string shortCode, Guid userId);
         Task<List<ShortUrl>> GetByUserIdAsync(Guid userId);
         Task<bool> ExistsAsync(string shortCode);
         Task IncrementClickCountAsync(ShortUrl shortUrl);

@@ -23,6 +23,15 @@ namespace Shortly_API.Repositories
             return await _context.ShortUrls.AnyAsync(su => su.ShortCode == shortCode);
         }
 
+        public async Task<ShortUrl?> GetByShortCodeAndUserIdAsync(string shortCode, Guid userId)
+        {
+            return await _context.ShortUrls
+                .FirstOrDefaultAsync(su =>
+                    su.ShortCode == shortCode &&
+                    su.UserId == userId &&
+                    su.IsActive);
+        }
+
         public async Task<ShortUrl?> GetByShortCodeAsync(string shortCode)
         {
             return await _context.ShortUrls

@@ -10,5 +10,6 @@ namespace Shortly_API.Services
         Task<string> GetOriginalUrlAsync(string shortCode);
 
         Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId);
+        Task<ShortUrlStatsResponse> GetUrlStatsAsync(string shortCode, Guid userId);
     }
 }
