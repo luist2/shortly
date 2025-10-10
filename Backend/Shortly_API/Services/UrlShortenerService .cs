@@ -73,6 +73,38 @@ namespace Shortly_API.Services
             };
         }
 
+        public async Task<bool> DeleteShortUrlAsync(string shortCode, Guid userId)
+        {
+            if (string.IsNullOrWhiteSpace(shortCode))
+            {
+                throw new ArgumentException("Short code cannot be null or empty.");
+            }
+            if (userId == Guid.Empty)
+            {
+                throw new ArgumentException("User ID cannot be empty.");
+            }
+
+            var shortUrl = await _repository.GetByShortCodeAndUserIdAsync(shortCode, userId);
+
+            if (shortUrl == null)
+            {
+                _logger.LogWarning("User {UserId} attempted to delete non-existent or unauthorized short URL {ShortCode}.", userId, shortCode);
+                throw new KeyNotFoundException("Short URL not found or does not belong to the user.");
+            }
+
+            if (!shortUrl.IsActive)
+            {
+                _logger.LogInformation("Short URL {ShortCode} is already inactive.", shortCode);
+                return false; // Ya está inactivo
+            }
+
+            shortUrl.IsActive = false;
+            await _repository.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserId} deleted short URL {ShortCode}.", userId, shortCode);
+            return true;
+        }
+
         public async Task<string> GetOriginalUrlAsync(string shortCode)
         {
             if (string.IsNullOrWhiteSpace(shortCode))

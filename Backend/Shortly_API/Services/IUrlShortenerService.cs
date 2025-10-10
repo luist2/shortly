@@ -11,5 +11,6 @@ namespace Shortly_API.Services
 
         Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId);
         Task<ShortUrlStatsResponse> GetUrlStatsAsync(string shortCode, Guid userId);
+        Task<bool> DeleteShortUrlAsync(string shortCode, Guid userId);
     }
 }

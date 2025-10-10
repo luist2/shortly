@@ -75,7 +75,41 @@ namespace Shortly_API.Controllers
             {
                 return NotFound(new { message = "Short URL not found." });
             }
-            catch (Exception ex)
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while processing your request." });
+            }
+        }
+
+        // DELETE /api/urls/{shortCode}
+        [HttpDelete("urls/{shortCode}")]
+        public async Task<IActionResult> DeleteShortUrl(string shortCode)
+        {
+            try
+            {
+                // Obtener el Id del usuario desde el token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null) return Unauthorized();
+                // Checkear que el claim no sea nulo y convertirlo a Guid
+                var userId = Guid.Parse(userIdClaim.Value);
+
+                var result = await _urlShortenerService.DeleteShortUrlAsync(shortCode, userId);
+                if (!result)
+                {
+                    return NotFound(new { message = "Short URL not found or does not belong to the user." });
+                }
+
+                return NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Short URL not found or does not belong to the user." });
+            }
+            catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while processing your request." });
             }
