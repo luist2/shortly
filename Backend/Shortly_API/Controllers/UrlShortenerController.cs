@@ -19,24 +19,30 @@ namespace Shortly_API.Controllers
             _urlShortenerService = urlShortenerService;
         }
 
+        // Método para obtener el UserId del token
+        private Guid? GetUserIdFromToken()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                return null;
+            }
+            return userId;
+        }
+
         // POST /api/urls
         [HttpPost("urls")]
         public async Task<ActionResult<ShortUrlResponse>> CreateShortUrl([FromBody] CreateShortUrlRequest request)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            // Obtener el Id del usuario desde el token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return Unauthorized();
+            var userId = GetUserIdFromToken();
+            if (userId == null) return Unauthorized();
 
-            // Checkear que el claim no sea nulo y convertirlo a Guid
-            var userId = Guid.Parse(userIdClaim.Value);
-
-            // Llamar al servicio para crear la URL corta
-            var result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId);
+            var result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId.Value);
 
             return Ok(result);
         }
@@ -45,13 +51,10 @@ namespace Shortly_API.Controllers
         [HttpGet("urls")]
         public async Task<ActionResult<List<ShortUrlResponse>>> GetUserUrls()
         {
-            // Obtener el Id del usuario desde el token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null) return Unauthorized();
-            // Checkear que el claim no sea nulo y convertirlo a Guid
-            var userId = Guid.Parse(userIdClaim.Value);
+            var userId = GetUserIdFromToken();
+            if (userId == null) return Unauthorized();
 
-            var urls = await _urlShortenerService.GetUserUrlsAsync(userId);
+            var urls = await _urlShortenerService.GetUserUrlsAsync(userId.Value);
             return Ok(urls);
         }
 
@@ -60,14 +63,11 @@ namespace Shortly_API.Controllers
         public async Task<ActionResult<ShortUrlStatsResponse>> GetUrlStats(string shortCode)
         {
             try
-            {                 
-                // Obtener el Id del usuario desde el token
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null) return Unauthorized();
-                // Checkear que el claim no sea nulo y convertirlo a Guid
-                var userId = Guid.Parse(userIdClaim.Value);
+            {
+                var userId = GetUserIdFromToken();
+                if (userId == null) return Unauthorized();
 
-                var stats = await _urlShortenerService.GetUrlStatsAsync(shortCode, userId);
+                var stats = await _urlShortenerService.GetUrlStatsAsync(shortCode, userId.Value);
 
                 return Ok(stats);
             }
@@ -87,13 +87,10 @@ namespace Shortly_API.Controllers
         {
             try
             {
-                // Obtener el Id del usuario desde el token
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null) return Unauthorized();
-                // Checkear que el claim no sea nulo y convertirlo a Guid
-                var userId = Guid.Parse(userIdClaim.Value);
+                var userId = GetUserIdFromToken();
+                if (userId == null) return Unauthorized();
 
-                var result = await _urlShortenerService.DeleteShortUrlAsync(shortCode, userId);
+                var result = await _urlShortenerService.DeleteShortUrlAsync(shortCode, userId.Value);
                 if (!result)
                 {
                     return NotFound(new { message = "Short URL not found or does not belong to the user." });
