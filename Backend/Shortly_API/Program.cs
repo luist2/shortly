@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Shortly_API.Data;
+using Shortly_API.Middleware;
 using Shortly_API.Repositories;
 using Shortly_API.Services;
 using System;
@@ -57,6 +58,8 @@ if (app.Environment.IsDevelopment())
 
     app.MapScalarApiReference();
 }
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 
