@@ -67,12 +67,8 @@ namespace Shortly_API.Controllers
             var userId = GetUserIdFromToken();
             var result = await _urlShortenerService.DeleteShortUrlAsync(shortCode, userId);
 
-            if (!result)
-            {
-                throw new KeyNotFoundException("Short URL not found or does not belong to the user.");
-            }
-
             return NoContent();
         }
+
     }
 }
