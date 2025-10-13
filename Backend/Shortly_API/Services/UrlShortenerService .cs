@@ -19,16 +19,41 @@ namespace Shortly_API.Services
             _config = config;
         }
 
-        public async Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl, Guid userId)
+        // Validaciones básicas
+        private void ValidateShortCode(string shortCode)
+        {
+            if (string.IsNullOrWhiteSpace(shortCode))
+            {
+                throw new ArgumentException("Short code cannot be null or empty.");
+            }
+        }
+
+        private void ValidateUserId(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                throw new ArgumentException("User ID cannot be empty.");
+            }
+        }
+
+        private void ValidateOriginalUrl(string originalUrl)
         {
             if (string.IsNullOrWhiteSpace(originalUrl))
             {
                 throw new ArgumentException("Original URL cannot be null or empty.");
             }
-            if(!Uri.IsWellFormedUriString(originalUrl, UriKind.Absolute))
+
+            if (!Uri.IsWellFormedUriString(originalUrl, UriKind.Absolute))
             {
                 throw new ArgumentException("Original URL is not valid.");
             }
+        }
+
+
+        public async Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl, Guid userId)
+        {
+            ValidateOriginalUrl(originalUrl);
+            ValidateUserId(userId);
 
             // Evitar acortar una URL que apunte a la propia aplicación
             var baseDomain = _config["AppSettings:BaseDomain"];
@@ -75,14 +100,9 @@ namespace Shortly_API.Services
 
         public async Task<bool> DeleteShortUrlAsync(string shortCode, Guid userId)
         {
-            if (string.IsNullOrWhiteSpace(shortCode))
-            {
-                throw new ArgumentException("Short code cannot be null or empty.");
-            }
-            if (userId == Guid.Empty)
-            {
-                throw new ArgumentException("User ID cannot be empty.");
-            }
+            
+            ValidateShortCode(shortCode);
+            ValidateUserId(userId);
 
             var shortUrl = await _repository.GetByShortCodeAndUserIdAsync(shortCode, userId);
 
@@ -107,15 +127,13 @@ namespace Shortly_API.Services
 
         public async Task<string> GetOriginalUrlAsync(string shortCode)
         {
-            if (string.IsNullOrWhiteSpace(shortCode))
-            {
-                throw new ArgumentException("Short code cannot be null or empty.");
-            }
+            ValidateShortCode(shortCode);
 
             var shortUrl = await _repository.GetByShortCodeAsync(shortCode);
 
             if (shortUrl == null)
             {
+                _logger.LogWarning("Short URL with code {ShortCode} not found or inactive.", shortCode);
                 throw new KeyNotFoundException("Short URL not found.");
             }
 
@@ -136,19 +154,14 @@ namespace Shortly_API.Services
 
         public async Task<ShortUrlStatsResponse> GetUrlStatsAsync(string shortCode, Guid userId)
         {
-            if (string.IsNullOrWhiteSpace(shortCode))
-            {
-                throw new ArgumentException("Short code cannot be null or empty.");
-            }
-            if (userId == Guid.Empty)
-            {
-                throw new ArgumentException("User ID cannot be empty.");
-            }
+            ValidateShortCode(shortCode);
+            ValidateUserId(userId);
 
             var shortUrl = await _repository.GetByShortCodeAndUserIdAsync(shortCode, userId);
 
             if (shortUrl == null)
             {
+                _logger.LogWarning("User {UserId} attempted to access stats for non-existent or unauthorized short URL {ShortCode}.", userId, shortCode);
                 throw new KeyNotFoundException("Short URL not found or does not belong to the user.");
             }
 
@@ -170,9 +183,7 @@ namespace Shortly_API.Services
 
         public async Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId)
         {
-            if (userId == Guid.Empty){
-                throw new ArgumentException("User ID cannot be empty.");
-            }
+            ValidateUserId(userId);
 
             var baseDomain = _config["AppSettings:BaseDomain"];
             var shortUrls = await _repository.GetByUserIdAsync(userId);

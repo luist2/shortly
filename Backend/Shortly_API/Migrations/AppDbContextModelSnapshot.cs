@@ -69,7 +69,7 @@ namespace Shortly_API.Migrations
                     b.HasIndex("IsActive", "ShortCode")
                         .HasDatabaseName("IX_ShortUrls_IsActive_ShortCode");
 
-                    b.ToTable("ShortUrls");
+                    b.ToTable("ShortUrls", (string)null);
                 });
 
             modelBuilder.Entity("Shortly_API.Entities.User", b =>
@@ -98,7 +98,7 @@ namespace Shortly_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Shortly_API.Entities.ShortUrl", b =>
