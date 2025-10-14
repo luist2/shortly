@@ -46,19 +46,19 @@ namespace Shortly_API.Services
         {
             if (await context.Users.AnyAsync(u => u.Username == request.Username))
             {
-                return null; // User already exists
+                return null;
             }
 
-            var user = new User();
-            var hashedPassword = new PasswordHasher<User>()
-                .HashPassword(user, request.PasswordHash);
+            var user = new User
+            {
+                Username = request.Username,
+                Role = "User"
+            };
 
-            user.Username = request.Username;
-            user.PasswordHash = hashedPassword;
+            user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.Password);
 
             context.Users.Add(user);
             await context.SaveChangesAsync();
-
             return user;
         }
 
