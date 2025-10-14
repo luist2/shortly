@@ -11,9 +11,6 @@ namespace Shortly_API.Controllers
     [ApiController]
     public class AuthController(IAuthService authService) : ControllerBase
     {
-
-        public static User user = new();
-
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register(UserDTO request)
         {
