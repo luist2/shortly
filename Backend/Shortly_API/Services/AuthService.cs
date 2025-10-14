@@ -42,7 +42,7 @@ namespace Shortly_API.Services
             };
         }
 
-        public async Task<User?> RegisterAsync(UserDTO request)
+        public async Task<UserResponseDTO?> RegisterAsync(UserDTO request)
         {
             if (await context.Users.AnyAsync(u => u.Username == request.Username))
             {
@@ -59,7 +59,12 @@ namespace Shortly_API.Services
 
             context.Users.Add(user);
             await context.SaveChangesAsync();
-            return user;
+
+            return new UserResponseDTO
+            {
+                Id = user.Id,
+                Username = user.Username
+            };
         }
 
         public async Task<TokenResponseDTO?> RefreshTokensAsync(RefreshTokenRequestDTO request)
