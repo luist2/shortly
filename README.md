@@ -28,7 +28,7 @@ Un acortador de URLs moderno y eficiente construido con .NET y Angular.
 ```bash
 # Clonar
 git clone https://github.com/luist2/shortly.git
-cd shortly/Shortly-API
+cd shortly/backend/Shortly_API
 
 # Configurar
 cp appsettings.json appsettings.Development.json
