@@ -14,6 +14,15 @@ namespace Shortly_API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                // Índice único en Email
+                entity.HasIndex(e => e.Email)
+                      .IsUnique()
+                      .HasDatabaseName("IX_Users_Email");
+            });
+
             modelBuilder.Entity<ShortUrl>(entity =>
             {
                 // Índice único en ShortCode, CRÍTICO para performance

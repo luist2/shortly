@@ -17,7 +17,7 @@ namespace Shortly_API.Services
         {
 
             var user = await context.Users
-                .FirstOrDefaultAsync(u => u.Username == request.Username);
+                .FirstOrDefaultAsync(u => u.Email == request.Email);
 
             if (user is null)
             {
@@ -44,14 +44,14 @@ namespace Shortly_API.Services
 
         public async Task<UserResponseDTO?> RegisterAsync(UserDTO request)
         {
-            if (await context.Users.AnyAsync(u => u.Username == request.Username))
+            if (await context.Users.AnyAsync(u => u.Email == request.Email))
             {
                 return null;
             }
 
             var user = new User
             {
-                Username = request.Username,
+                Email = request.Email,
                 Role = "User"
             };
 
@@ -63,7 +63,7 @@ namespace Shortly_API.Services
             return new UserResponseDTO
             {
                 Id = user.Id,
-                Username = user.Username
+                Email = user.Email
             };
         }
 
@@ -114,7 +114,7 @@ namespace Shortly_API.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Role, user.Role)
             };
