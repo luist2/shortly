@@ -49,7 +49,58 @@ namespace Shortly_API.Services
             }
         }
 
+        // Método para usuarios anónimos
+        public async Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl)
+        {
+            ValidateOriginalUrl(originalUrl);
 
+            // Evitar acortar una URL que apunte a la propia aplicación
+            var baseDomain = _config["AppSettings:BaseDomain"];
+            if(originalUrl.StartsWith(baseDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Cannot shorten a URL that points to the same domain as the application.");
+            }
+
+            // Lógica para generar un código corto único
+            string shortCode;
+            int retries = 0;
+
+            do
+            {
+                if(retries++ > 5)
+                {
+                    _logger.LogError("Failed to generate a unique short code after multiple attempts.");
+                    throw new Exception("Failed to generate a unique short code after multiple attempts.");
+                }
+                shortCode = ShortCodeGenerator.Generate(8);
+            } while (await _repository.ExistsAsync(shortCode));
+
+            var shortUrl = new ShortUrl
+            {
+                ShortCode = shortCode,
+                OriginalUrl = originalUrl,
+                UserId = null, // Usuario anónimo
+                CreatedAt = DateTime.UtcNow,
+                ExpiresAt = DateTime.UtcNow.AddHours(24), // Expiración en 24 horas
+                IsActive = true
+            };
+
+            await _repository.CreateAsync(shortUrl);
+            await _repository.SaveChangesAsync();
+
+            _logger.LogInformation("Created short URL {ShortCode} for anonymous user.", shortCode);
+
+            return new ShortUrlResponse
+            {
+                ShortCode = shortUrl.ShortCode,
+                OriginalUrl = shortUrl.OriginalUrl,
+                ShortUrl = $"{baseDomain}/{shortUrl.ShortCode}",
+                CreatedAt = shortUrl.CreatedAt,
+                ClickCount = shortUrl.ClickCount
+            };
+        }
+
+        // Método para usuarios autenticados
         public async Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl, Guid userId)
         {
             ValidateOriginalUrl(originalUrl);
@@ -88,6 +139,8 @@ namespace Shortly_API.Services
 
             await _repository.CreateAsync(shortUrl);
             await _repository.SaveChangesAsync();
+
+            _logger.LogInformation("Created short URL {ShortCode} for user {UserId}.", shortCode, userId);
 
             return new ShortUrlResponse
             {
@@ -201,5 +254,7 @@ namespace Shortly_API.Services
 
             return response;
         }
+
+       
     }
 }

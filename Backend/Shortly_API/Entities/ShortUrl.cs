@@ -17,8 +17,7 @@ namespace Shortly_API.Entities
         [MaxLength(2048)]
         public string OriginalUrl { get; set; } = string.Empty;
 
-        [Required]
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? ExpiresAt { get; set; }
@@ -27,6 +26,6 @@ namespace Shortly_API.Entities
         public DateTime? LastAccessedAt { get; set; }
 
         // Relacion con la entidad User
-        public virtual User User { get; set; } = null!;
+        public virtual User? User { get; set; } = null!;
     }
 }
