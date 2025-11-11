@@ -43,7 +43,7 @@ export class AuthService {
    * @param request - Objeto que contiene el userId y el refreshToken.
    * @returns Observable con la nueva respuesta de tokens del servidor.
    */
-  refreshToken(request: RefreshTokenRequest): Observable<TokenResponse> {
+  refreshToken(): Observable<TokenResponse> {
     const refreshToken = localStorage.getItem('refreshToken');
     const userId = localStorage.getItem('userId');
 
@@ -57,7 +57,7 @@ export class AuthService {
     };
 
     return this.http
-      .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-token`, body)
+      .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-tokens`, body)
       .pipe(tap((response) => this.saveTokens(response)));
   }
 
