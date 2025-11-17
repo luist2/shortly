@@ -34,6 +34,9 @@ cd shortly/backend/Shortly_API
 cp appsettings.json appsettings.Development.json
 # Edita appsettings.Development.json con tu JWT secret y connection string
 
+# Instalar dependencias
+dotnet restore
+
 # Ejecutar
 dotnet ef database update
 dotnet run
