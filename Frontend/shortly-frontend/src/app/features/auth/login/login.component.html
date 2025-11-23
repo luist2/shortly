@@ -5,7 +5,7 @@
         <mat-icon class="title-icon">link</mat-icon>
         Shortly
       </mat-card-title>
-      <mat-card-subtitle>Inicia sesión en tu cuenta</mat-card-subtitle>
+      <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
@@ -17,7 +17,7 @@
             matInput
             type="email"
             formControlName="email"
-            placeholder="tu@email.com"
+            placeholder="your@email.com"
             autocomplete="email"
           />
           <mat-icon matPrefix>email</mat-icon>
@@ -28,7 +28,7 @@
 
         <!-- Campo Password -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Contraseña</mat-label>
+          <mat-label>Password</mat-label>
           <input
             matInput
             [type]="hidePassword ? 'password' : 'text'"
@@ -42,7 +42,7 @@
             matSuffix
             type="button"
             (click)="hidePassword = !hidePassword"
-            [attr.aria-label]="'Ocultar contraseña'"
+            [attr.aria-label]="'Hide password'"
             [attr.aria-pressed]="hidePassword"
           >
             <mat-icon>{{
@@ -67,15 +67,15 @@
             diameter="20"
             class="button-spinner"
           ></mat-spinner>
-          <span *ngIf="!isLoading">Iniciar Sesión</span>
+          <span *ngIf="!isLoading">Sign In</span>
         </button>
       </form>
     </mat-card-content>
 
     <mat-card-actions class="actions">
       <p class="register-link">
-        ¿No tienes una cuenta?
-        <a routerLink="/register" mat-button color="accent">Regístrate aquí</a>
+        Don’t have an account?
+        <a routerLink="/register" mat-button color="accent">Register here</a>
       </p>
     </mat-card-actions>
   </mat-card>

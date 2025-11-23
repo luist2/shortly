@@ -1,0 +1,127 @@
+<div class="register-container">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title class="title">
+        <mat-icon class="title-icon">link</mat-icon>
+        Shortly
+      </mat-card-title>
+      <mat-card-subtitle>Create your account</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <!-- Campo Email -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            placeholder="your@email.com"
+            autocomplete="email"
+          />
+          <mat-icon matPrefix>email</mat-icon>
+          <mat-error *ngIf="registerForm.get('email')?.invalid">
+            {{ getErrorMessage("email") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Campo Password -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+          <mat-icon matPrefix>lock</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="hidePassword = !hidePassword"
+            [attr.aria-label]="'Hide password'"
+            [attr.aria-pressed]="hidePassword"
+          >
+            <mat-icon>{{
+              hidePassword ? "visibility_off" : "visibility"
+            }}</mat-icon>
+          </button>
+          <mat-error *ngIf="registerForm.get('password')?.invalid">
+            {{ getErrorMessage("password") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Campo Confirmar Password -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirm Password</mat-label>
+          <input
+            matInput
+            [type]="hideConfirmPassword ? 'password' : 'text'"
+            formControlName="confirmPassword"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+          <mat-icon matPrefix>lock_outline</mat-icon>
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="hideConfirmPassword = !hideConfirmPassword"
+            [attr.aria-label]="'Hide password'"
+            [attr.aria-pressed]="hideConfirmPassword"
+          >
+            <mat-icon>{{
+              hideConfirmPassword ? "visibility_off" : "visibility"
+            }}</mat-icon>
+          </button>
+          <mat-error
+            *ngIf="
+              registerForm.get('confirmPassword')?.invalid ||
+              registerForm.hasError('passwordMismatch')
+            "
+          >
+            {{ getErrorMessage("confirmPassword") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Hint de requisitos de contraseña -->
+        <div
+          class="password-hint"
+          *ngIf="registerForm.get('password')?.touched"
+        >
+          <mat-icon class="hint-icon">info</mat-icon>
+          <span
+            >Password must be at least 6 characters long and include uppercase,
+            lowercase and numbers</span
+          >
+        </div>
+
+        <!-- Botón Submit -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width submit-button"
+          [disabled]="isLoading"
+        >
+          <mat-spinner
+            *ngIf="isLoading"
+            diameter="20"
+            class="button-spinner"
+          ></mat-spinner>
+          <span *ngIf="!isLoading">Register</span>
+        </button>
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="actions">
+      <p class="login-link">
+        Already have an account?
+        <a routerLink="/login" mat-button color="accent">Sign in here</a>
+      </p>
+    </mat-card-actions>
+  </mat-card>
+</div>
