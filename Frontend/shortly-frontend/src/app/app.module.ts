@@ -7,15 +7,16 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
-import { LoginComponent } from './features/auth/login/login.component';
+import { AuthModule } from './features/auth/auth.module';
 
 @NgModule({
-  declarations: [AppComponent, LoginComponent],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    AuthModule,
   ],
   providers: [
     {
