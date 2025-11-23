@@ -11,6 +11,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200") // URL Angular
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -58,6 +69,8 @@ if (app.Environment.IsDevelopment())
 
     app.MapScalarApiReference();
 }
+
+app.UseCors("AllowAngularApp");
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
