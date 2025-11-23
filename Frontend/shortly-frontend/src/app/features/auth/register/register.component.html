@@ -79,11 +79,10 @@
           </button>
           <mat-error
             *ngIf="
-              registerForm.get('confirmPassword')?.invalid ||
-              registerForm.hasError('passwordMismatch')
+              registerForm.get('confirmPassword')?.hasError('passwordMismatch')
             "
           >
-            {{ getErrorMessage("confirmPassword") }}
+            Passwords do not match
           </mat-error>
         </mat-form-field>
 

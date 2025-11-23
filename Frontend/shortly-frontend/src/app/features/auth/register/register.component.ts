@@ -68,12 +68,15 @@ export class RegisterComponent implements OnInit {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
 
-    if (!password || !confirmPassword) {
+    if (!password || !confirmPassword) return null;
+
+    if (password.value !== confirmPassword.value) {
+      confirmPassword.setErrors({ passwordMismatch: true });
+      return { passwordMismatch: true };
+    } else {
+      confirmPassword.setErrors(null);
       return null;
     }
-    return password.value === confirmPassword.value
-      ? null
-      : { passwordMismatch: true };
   }
 
   onSubmit(): void {
@@ -132,12 +135,15 @@ export class RegisterComponent implements OnInit {
 
   getErrorMessage(fieldName: string): string {
     const field = this.registerForm.get(fieldName);
+
     if (field?.hasError('required')) {
       return 'This field is required';
     }
+
     if (fieldName === 'email' && field?.hasError('email')) {
       return 'Please enter a valid email address';
     }
+
     if (fieldName === 'password') {
       if (field?.hasError('minlength')) {
         return 'Password must be at least 6 characters long';
@@ -146,11 +152,13 @@ export class RegisterComponent implements OnInit {
         return 'Password must contain uppercase, lowercase letters and a number';
       }
     }
+
     if (fieldName === 'confirmPassword') {
-      if (this.registerForm.hasError('passwordMismatch')) {
+      if (this.registerForm.hasError('passwordMismatch') && field?.touched) {
         return 'Passwords do not match';
       }
     }
+
     return '';
   }
 }
