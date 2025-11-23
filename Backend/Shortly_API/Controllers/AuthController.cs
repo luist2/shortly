@@ -17,7 +17,7 @@ namespace Shortly_API.Controllers
             var response = await authService.RegisterAsync(request);
             if (response is null)
             {
-                return BadRequest("Email already exists");
+                return Conflict("Email already exists");
             }
 
             return Ok(response);
@@ -30,7 +30,7 @@ namespace Shortly_API.Controllers
             var result = await authService.LoginAsync(request);
             if (result is null)
             {
-                return BadRequest("Invalid email or password");
+                return Unauthorized("Invalid email or password");
             }
 
             return Ok(result);
