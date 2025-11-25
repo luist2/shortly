@@ -9,6 +9,9 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { AuthModule } from './features/auth/auth.module';
 
+// Material Modules
+import { MatToolbarModule } from '@angular/material/toolbar';
+
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -17,6 +20,8 @@ import { AuthModule } from './features/auth/auth.module';
     BrowserAnimationsModule,
     HttpClientModule,
     AuthModule,
+    // Material Modules
+    MatToolbarModule,
   ],
   providers: [
     {

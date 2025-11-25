@@ -1,0 +1,26 @@
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-weight: 600;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content {
+  margin-top: 64px; // altura del toolbar
+  padding: 16px;
+}
+
+.logout-btn {
+  font-weight: 500;
+}

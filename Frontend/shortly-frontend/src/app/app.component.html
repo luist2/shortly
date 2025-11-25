@@ -1,1 +1,25 @@
-<router-outlet></router-outlet>
+<ng-container *ngIf="!hideLayout; else publicView">
+  <mat-toolbar color="primary" class="toolbar">
+    <span class="logo">Shortly</span>
+    <span class="spacer"></span>
+
+    <!-- Mostrar solo si está autenticado -->
+    <button
+      *ngIf="isAuthenticated()"
+      mat-button
+      (click)="logout()"
+      class="logout-btn"
+    >
+      Logout
+    </button>
+  </mat-toolbar>
+
+  <div class="content">
+    <router-outlet></router-outlet>
+  </div>
+</ng-container>
+
+<!-- Vista sin layout (login/register) -->
+<ng-template #publicView>
+  <router-outlet></router-outlet>
+</ng-template>

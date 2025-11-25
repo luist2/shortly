@@ -97,6 +97,22 @@ export class AuthService {
     }
   }
 
+  getUserEmail(): string | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payloadDecoded = JSON.parse(atob(payloadBase64));
+      return payloadDecoded['email'] || null;
+    } catch (error) {
+      console.error('Error: ', error);
+      return null;
+    }
+  }
+
   /**
    * Cierra la sesión del usuario eliminando los tokens almacenados.
    */
