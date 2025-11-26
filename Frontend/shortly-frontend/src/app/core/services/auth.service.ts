@@ -83,32 +83,44 @@ export class AuthService {
    */
   getUserId(): string | null {
     const token = this.getToken();
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
     try {
-      const payloadBase64 = token.split('.')[1];
-      const payloadDecoded = JSON.parse(atob(payloadBase64));
-      return payloadDecoded['nameid'] || null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      return (
+        payload['nameid'] ||
+        payload[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+        ] ||
+        null
+      );
     } catch (error) {
-      console.error('Error: ', error);
+      console.error('Error decoding token:', error);
       return null;
     }
   }
 
+  /**
+   * Obtiene el email del usuario desde el JWT decodificado.
+   * Busca el claim 'email' en el payload del token.
+   */
   getUserEmail(): string | null {
     const token = this.getToken();
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
     try {
-      const payloadBase64 = token.split('.')[1];
-      const payloadDecoded = JSON.parse(atob(payloadBase64));
-      return payloadDecoded['email'] || null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      return (
+        payload['email'] ||
+        payload[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+        ] ||
+        null
+      );
     } catch (error) {
-      console.error('Error: ', error);
+      console.error('Error decoding token:', error);
       return null;
     }
   }
@@ -136,9 +148,16 @@ export class AuthService {
   private extractUserIdFromToken(token: string): string | null {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload['nameid'] || null;
+
+      return (
+        payload['nameid'] ||
+        payload[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+        ] ||
+        null
+      );
     } catch (error) {
-      console.error('Error: ', error);
+      console.error('Error decoding token:', error);
       return null;
     }
   }

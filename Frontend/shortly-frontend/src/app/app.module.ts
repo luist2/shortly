@@ -11,9 +11,15 @@ import { AuthModule } from './features/auth/auth.module';
 
 // Material Modules
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { DashboardComponent } from './features/dashboard/dashboard.component';
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, DashboardComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -22,6 +28,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     AuthModule,
     // Material Modules
     MatToolbarModule,
+    MatSidenavModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule,
+    MatDividerModule,
   ],
   providers: [
     {

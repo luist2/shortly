@@ -26,6 +26,10 @@ export class AppComponent {
     return this.authService.isAuthenticated();
   }
 
+  getUserEmail(): string | null {
+    return this.authService.getUserEmail();
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
