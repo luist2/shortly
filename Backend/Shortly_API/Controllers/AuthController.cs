@@ -9,12 +9,20 @@ namespace Shortly_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IAuthService authService) : ControllerBase
+    public class AuthController : ControllerBase
     {
+
+        private readonly IAuthService _authService;
+
+        public AuthController(IAuthService authService)
+        {
+            _authService = authService;
+        }
+
         [HttpPost("register")]
         public async Task<ActionResult<UserResponseDTO>> Register(UserDTO request)
         {
-            var response = await authService.RegisterAsync(request);
+            var response = await _authService.RegisterAsync(request);
             if (response is null)
             {
                 return Conflict("Email already exists");
@@ -27,7 +35,7 @@ namespace Shortly_API.Controllers
         public async Task<ActionResult<TokenResponseDTO>> Login(UserDTO request)
         {
 
-            var result = await authService.LoginAsync(request);
+            var result = await _authService.LoginAsync(request);
             if (result is null)
             {
                 return Unauthorized("Invalid email or password");
@@ -35,11 +43,10 @@ namespace Shortly_API.Controllers
 
             return Ok(result);
         }
-
         [HttpPost("refresh-tokens")]
         public async Task<ActionResult<TokenResponseDTO>> RefreshTokens(RefreshTokenRequestDTO request)
         {
-            var result = await authService.RefreshTokensAsync(request);
+            var result = await _authService.RefreshTokensAsync(request);
             if (result is null || result.AccessToken is null || result.RefreshToken is null)
             {
                 return Unauthorized("Invalid refresh token");
