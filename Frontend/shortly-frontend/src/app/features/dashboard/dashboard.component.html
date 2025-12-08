@@ -1,1 +1,129 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+  <!-- Header del dashboard -->
+  <div class="dashboard-header">
+    <h1>My URLs</h1>
+  </div>
+
+  <!-- Spinner de carga -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading your URLs...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <mat-card *ngIf="errorMessage && !isLoading" class="error-card">
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <p>{{ errorMessage }}</p>
+      </div>
+      <button mat-raised-button color="primary" (click)="loadUserUrls()">
+        Retry
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Estado vacío (cuando no hay URLs) -->
+  <mat-card *ngIf="shouldShowEmptyState" class="empty-state-card">
+    <mat-card-content>
+      <mat-icon class="empty-icon">link_off</mat-icon>
+      <h2>You have no shortened URLs</h2>
+      <p>Start by creating your first shortened URL</p>
+      <button mat-raised-button color="primary" routerLink="/urls/new">
+        <mat-icon>add</mat-icon>
+        Create URL
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Tabla con las URLs -->
+  <mat-card *ngIf="hasUrls && !isLoading" class="table-card">
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table [dataSource]="dataSource" class="urls-table">
+          <!-- Columna: Short URL -->
+          <ng-container matColumnDef="shortUrl">
+            <th mat-header-cell *matHeaderCellDef>Short URL</th>
+            <td mat-cell *matCellDef="let url">
+              <div class="short-url-cell">
+                <mat-icon class="link-icon">link</mat-icon>
+                <a [href]="url.shortUrl" target="_blank" class="short-url-link">
+                  {{ url.shortUrl }}
+                </a>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna: URL original -->
+          <ng-container matColumnDef="originalUrl">
+            <th mat-header-cell *matHeaderCellDef>Original URL</th>
+            <td mat-cell *matCellDef="let url">
+              <div class="original-url-cell" [title]="url.originalUrl">
+                {{ url.originalUrl }}
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna: número de clics -->
+          <ng-container matColumnDef="clickCount">
+            <th mat-header-cell *matHeaderCellDef>Clicks</th>
+            <td mat-cell *matCellDef="let url">
+              <div class="clicks-cell">
+                <mat-icon class="click-icon">bar_chart</mat-icon>
+                <span class="click-count">{{ url.clickCount }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna: fecha de creación -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Created At</th>
+            <td mat-cell *matCellDef="let url">
+              {{ url.createdAt | date : "dd/MM/yyyy HH:mm" }}
+            </td>
+          </ng-container>
+
+          <!-- Columna: acciones -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let url">
+              <div class="actions-cell">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  matTooltip="Copy URL"
+                  aria-label="Copy URL"
+                >
+                  <mat-icon>content_copy</mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  color="accent"
+                  matTooltip="View stats"
+                  [routerLink]="['/urls', url.shortCode, 'stats']"
+                  aria-label="View stats"
+                >
+                  <mat-icon>analytics</mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  color="warn"
+                  matTooltip="Delete URL"
+                  aria-label="Delete URL"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Header y filas de la tabla -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

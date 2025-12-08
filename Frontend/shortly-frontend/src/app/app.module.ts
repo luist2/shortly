@@ -9,7 +9,6 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { AuthModule } from './features/auth/auth.module';
 
-import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { UrlCreateComponent } from './features/url-create/url-create.component';
 import { UrlStatsComponent } from './features/url-stats/url-stats.component';
 
@@ -20,20 +19,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { DashboardModule } from './features/dashboard/dashboard.module';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    DashboardComponent,
-    UrlCreateComponent,
-    UrlStatsComponent,
-  ],
+  declarations: [AppComponent, UrlCreateComponent, UrlStatsComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     HttpClientModule,
+
+    // Feature Modules
     AuthModule,
+    DashboardModule,
+
     // Material Modules
     MatToolbarModule,
     MatSidenavModule,
