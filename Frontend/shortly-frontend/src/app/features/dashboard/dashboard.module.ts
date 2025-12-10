@@ -12,6 +12,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { SharedModule } from 'src/app/shared/shared.module';
+import { MatDialogModule } from '@angular/material/dialog';
 
 const routes: Routes = [
   {
@@ -25,6 +29,7 @@ const routes: Routes = [
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
+
     // Material Modules
     MatTableModule,
     MatProgressSpinnerModule,
@@ -32,6 +37,12 @@ const routes: Routes = [
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
+    MatSnackBarModule,
+
+    // CDK
+    ClipboardModule,
+    //Shared Module
+    SharedModule,
   ],
 })
 export class DashboardModule {}

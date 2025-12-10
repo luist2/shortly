@@ -1,6 +1,19 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { Router } from '@angular/router';
+import { Clipboard } from '@angular/cdk/clipboard';
+
+// Servicios
 import { UrlService } from 'src/app/core/services/url.service';
+
+// Modelos
 import { ShortUrlResponse } from 'src/app/models/short-url.model';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,7 +31,7 @@ export class DashboardComponent implements OnInit {
   ];
 
   // Datos de la tabla
-  dataSource: ShortUrlResponse[] = [];
+  dataSource = new MatTableDataSource<ShortUrlResponse>([]);
 
   // Estado de carga
   isLoading = false;
@@ -26,7 +39,13 @@ export class DashboardComponent implements OnInit {
   // Control de errores
   errorMessage: string | null = null;
 
-  constructor(private urlService: UrlService) {}
+  constructor(
+    private urlService: UrlService,
+    private snackBar: MatSnackBar,
+    private router: Router,
+    private dialog: MatDialog,
+    private clipboard: Clipboard
+  ) {}
 
   ngOnInit(): void {
     this.loadUserUrls();
@@ -41,14 +60,102 @@ export class DashboardComponent implements OnInit {
 
     this.urlService.getUserUrls().subscribe({
       next: (urls) => {
-        this.dataSource = urls;
+        this.dataSource.data = urls;
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error loading user URLs:', error);
         this.errorMessage = 'Failed to load URLs. Please try again later.';
         this.isLoading = false;
-        this.dataSource = [];
+      },
+    });
+  }
+
+  /**
+   * Copia la URL acortada al portapapeles.
+   * @param shortUrl - URL acortada a copiar.
+   */
+  copyToClipboard(shortUrl: string): void {
+    const success = this.clipboard.copy(shortUrl);
+
+    if (success) {
+      this.snackBar.open('✓ URL copied to clipboard!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['success-snackbar'],
+      });
+    } else {
+      this.snackBar.open('Failed to copy URL', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+      });
+    }
+  }
+
+  /**
+   * Navega a la página de estadísticas de la URL acortada.
+   * @param shortCode - Código corto de la URL.
+   */
+  viewStats(shortCode: string): void {
+    this.router.navigate(['/urls', shortCode, 'stats']);
+  }
+
+  /**
+   * Abre un diálogo de confirmación para eliminar la URL.
+   * @param url - URL a eliminar.
+   */
+  deleteUrl(url: ShortUrlResponse): void {
+    const dialogData: ConfirmDialogData = {
+      title: 'Delete URL',
+      message: `Are you sure you want to delete this shortened URL? This action cannot be undone.\n\nShort URL: ${url.shortUrl}`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmColor: 'warn',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: dialogData,
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        this.performDelete(url);
+      }
+    });
+  }
+
+  /**
+   * Realiza la eliminación de la URL y maneja la respuesta.
+   * @param url - URL a eliminar.
+   */
+  private performDelete(url: ShortUrlResponse): void {
+    this.urlService.deleteUrl(url.shortCode).subscribe({
+      next: () => {
+        // Eliminar de la tabla
+        const currentData = this.dataSource.data;
+        this.dataSource.data = currentData.filter(
+          (u) => u.shortCode !== url.shortCode
+        );
+
+        // Mostrar mensaje de éxito
+        this.snackBar.open('✓ URL deleted successfully', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['success-snackbar'],
+        });
+      },
+      error: (error) => {
+        console.error('Error deleting URL:', error);
+
+        // Mostrar mensaje de error
+        this.snackBar.open('Failed to delete URL. Please try again.', 'Close', {
+          duration: 4000,
+          panelClass: ['error-snackbar'],
+        });
       },
     });
   }
@@ -57,7 +164,7 @@ export class DashboardComponent implements OnInit {
    * Verifica si hay URLs para mostrar.
    */
   get hasUrls(): boolean {
-    return this.dataSource.length > 0;
+    return this.dataSource.data.length > 0;
   }
 
   /**

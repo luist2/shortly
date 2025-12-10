@@ -88,29 +88,34 @@
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let url">
               <div class="actions-cell">
+                <!-- Botón Copiar -->
                 <button
                   mat-icon-button
                   color="primary"
                   matTooltip="Copy URL"
-                  aria-label="Copy URL"
+                  (click)="copyToClipboard(url.shortUrl)"
+                  aria-label="Copy URL to clipboard"
                 >
                   <mat-icon>content_copy</mat-icon>
                 </button>
 
+                <!-- Botón Ver Stats -->
                 <button
                   mat-icon-button
                   color="accent"
-                  matTooltip="View stats"
-                  [routerLink]="['/urls', url.shortCode, 'stats']"
-                  aria-label="View stats"
+                  matTooltip="View statistics"
+                  (click)="viewStats(url.shortCode)"
+                  aria-label="View URL statistics"
                 >
                   <mat-icon>analytics</mat-icon>
                 </button>
 
+                <!-- Botón Eliminar -->
                 <button
                   mat-icon-button
                   color="warn"
                   matTooltip="Delete URL"
+                  (click)="deleteUrl(url)"
                   aria-label="Delete URL"
                 >
                   <mat-icon>delete</mat-icon>

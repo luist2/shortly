@@ -20,6 +20,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { DashboardModule } from './features/dashboard/dashboard.module';
+import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 
 @NgModule({
   declarations: [AppComponent, UrlCreateComponent, UrlStatsComponent],
