@@ -2,9 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 
-// Components
-import { DashboardComponent } from './dashboard.component';
-
 // Material Modules
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -15,7 +12,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { SharedModule } from 'src/app/shared/shared.module';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatChipsModule } from '@angular/material/chips';
+
+// Components
+import { DashboardComponent } from './dashboard.component';
+import { FormsModule } from '@angular/forms';
+import { MatSortModule } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 const routes: Routes = [
   {
@@ -29,6 +33,7 @@ const routes: Routes = [
   imports: [
     CommonModule,
     RouterModule.forChild(routes),
+    FormsModule,
 
     // Material Modules
     MatTableModule,
@@ -38,6 +43,10 @@ const routes: Routes = [
     MatButtonModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatChipsModule,
 
     // CDK
     ClipboardModule,

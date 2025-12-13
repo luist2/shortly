@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
@@ -14,6 +14,7 @@ import {
   ConfirmDialogComponent,
   ConfirmDialogData,
 } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
+import { MatSort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,6 +22,8 @@ import {
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
+  @ViewChild(MatSort) sort!: MatSort;
+
   // Columnas de la tabla
   displayedColumns: string[] = [
     'shortUrl',
@@ -39,6 +42,9 @@ export class DashboardComponent implements OnInit {
   // Control de errores
   errorMessage: string | null = null;
 
+  // Control de busqueda
+  searchTerm: string = '';
+
   constructor(
     private urlService: UrlService,
     private snackBar: MatSnackBar,
@@ -49,6 +55,41 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserUrls();
+    this.setupFilter();
+  }
+
+  /**
+   * Inicializa la ordenación de la tabla después de que la vista se haya inicializado.
+   */
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
+  }
+
+  /**
+   * Configura el filtro personalizado para el datasource.
+   */
+  private setupFilter(): void {
+    this.dataSource.filterPredicate = (
+      data: ShortUrlResponse,
+      filter: string
+    ): boolean => {
+      const searchStr = filter.toLowerCase();
+
+      // Buscar en shortUrl, originalUrl y shortCode
+      const matchesShortUrl = data.shortUrl.toLowerCase().includes(searchStr);
+      const matchesOriginalUrl = data.originalUrl
+        .toLowerCase()
+        .includes(searchStr);
+      const matchesShortCode = data.shortCode.toLowerCase().includes(searchStr);
+      const matchesClicks = data.clickCount.toString().includes(searchStr);
+
+      return (
+        matchesShortUrl ||
+        matchesOriginalUrl ||
+        matchesShortCode ||
+        matchesClicks
+      );
+    };
   }
 
   /**
@@ -69,6 +110,35 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  /**
+   * Aplica el filtro de búsqueda al datasource.
+   */
+  applyFilter(): void {
+    this.dataSource.filter = this.searchTerm.trim().toLowerCase();
+  }
+
+  /**
+   * Limpia el término de búsqueda y el filtro del datasource.
+   */
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.dataSource.filter = '';
+  }
+
+  /**
+   * Verifica si hay un filtro activo.
+   */
+  get hasActiveFilter(): boolean {
+    return this.searchTerm.trim().length > 0;
+  }
+
+  /**
+   * Obtiene el conteo de resultados filtrados.
+   */
+  get filteredResultsCount(): number {
+    return this.dataSource.filteredData.length;
   }
 
   /**
@@ -172,5 +242,11 @@ export class DashboardComponent implements OnInit {
    */
   get shouldShowEmptyState(): boolean {
     return !this.isLoading && !this.errorMessage && !this.hasUrls;
+  }
+
+  get hasNoSearchResults(): boolean {
+    return (
+      this.hasActiveFilter && this.hasUrls && this.filteredResultsCount === 0
+    );
   }
 }
