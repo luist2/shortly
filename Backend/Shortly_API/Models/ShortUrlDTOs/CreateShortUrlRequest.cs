@@ -6,7 +6,7 @@ namespace Shortly_API.Models.ShortUrlDTOs
     {
         [Required]
         [MaxLength(2048)]
-        [Url(ErrorMessage = "La URL proporcionada no es válida.")]
+        [Url(ErrorMessage = "The provided URL is not valid.")]
         public string OriginalUrl { get; set; } = string.Empty;
 
         // Opcional: permitir expiración definida por el usuario
