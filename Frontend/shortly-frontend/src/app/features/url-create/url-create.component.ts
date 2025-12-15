@@ -1,5 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { UrlService } from 'src/app/core/services/url.service';
 import { ShortUrlResponse } from 'src/app/models/short-url.model';
 
@@ -13,7 +15,11 @@ export class UrlCreateComponent implements OnInit {
   isLoading = false;
   createdUrl: ShortUrlResponse | null = null;
 
-  constructor(private fb: FormBuilder, private urlService: UrlService) {}
+  constructor(
+    private fb: FormBuilder,
+    private urlService: UrlService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.initForm();
@@ -47,10 +53,33 @@ export class UrlCreateComponent implements OnInit {
         this.createdUrl = response;
         this.urlForm.reset();
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         this.isLoading = false;
-        console.error('Error creating short URL:', error);
-        // TODO: Mostrar error con MatSnackBar
+
+        let errorMessage = 'Unexpected error occurred. Please try again.';
+
+        // Backend no disponible / servidor caído
+        if (error.status === 0) {
+          errorMessage = 'Server is not available. Please try again later.';
+        }
+
+        // Error de validación (400)
+        else if (error.status === 400 && error.error?.errors?.OriginalUrl) {
+          errorMessage = error.error.errors.OriginalUrl[0];
+
+          // Marcar el campo como inválido desde backend
+          this.urlForm.get('originalUrl')?.setErrors({ backend: true });
+        }
+
+        // Otros errores (500, 403, etc.)
+        else if (error.error?.title) {
+          errorMessage = error.error.title;
+        }
+
+        this.snackBar.open(errorMessage, 'Close', {
+          duration: 5000,
+          panelClass: ['snackbar-error'],
+        });
       },
     });
   }
@@ -61,8 +90,13 @@ export class UrlCreateComponent implements OnInit {
     if (control?.hasError('required')) {
       return 'This field is required';
     }
+
     if (control?.hasError('pattern')) {
       return 'Please enter a valid URL';
+    }
+
+    if (control?.hasError('backend')) {
+      return 'The provided URL is not valid';
     }
 
     return '';
