@@ -1,0 +1,256 @@
+.create-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.create-card,
+.result-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease-in;
+
+  mat-card-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 32px;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 8px;
+
+      .title-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+      }
+
+      &.success-title {
+        color: #4caf50;
+
+        .title-icon {
+          color: #4caf50;
+        }
+      }
+    }
+
+    mat-card-subtitle {
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.6);
+      text-align: center;
+    }
+  }
+
+  mat-card-content {
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      .full-width {
+        width: 100%;
+      }
+
+      .submit-button {
+        height: 48px;
+        font-size: 16px;
+        font-weight: 500;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        .button-spinner {
+          display: inline-block;
+          margin-right: 8px;
+        }
+
+        mat-icon {
+          margin-right: 4px;
+        }
+      }
+    }
+
+    // Estilos para el resultado
+    .url-info {
+      margin-bottom: 24px;
+
+      .url-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.6);
+        margin-bottom: 8px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .original-url {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.7);
+        word-break: break-all;
+        margin: 0;
+        padding: 12px;
+        background-color: rgba(103, 126, 234, 0.1);
+        border-radius: 8px;
+        line-height: 1.4;
+      }
+    }
+
+    .short-url-container {
+      margin-bottom: 32px;
+
+      .url-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.6);
+        margin-bottom: 12px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .short-url-display {
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+        .short-url-link {
+          font-size: 20px;
+          font-weight: 600;
+          color: white;
+          text-decoration: none;
+          word-break: break-all;
+          display: block;
+          transition: all 0.2s ease;
+
+          &:hover {
+            text-decoration: underline;
+            opacity: 0.9;
+          }
+        }
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .action-btn {
+        width: 100%;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 15px;
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Estilos para snackbars
+::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50;
+    color: white;
+
+    .mat-simple-snackbar-action {
+      color: white;
+    }
+  }
+
+  .error-snackbar {
+    background-color: #f44336;
+    color: white;
+
+    .mat-simple-snackbar-action {
+      color: white;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 600px) {
+  .create-container {
+    padding: 12px;
+  }
+
+  .create-card,
+  .result-card {
+    padding: 16px;
+
+    mat-card-header {
+      .title {
+        font-size: 28px;
+
+        .title-icon {
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+        }
+      }
+
+      mat-card-subtitle {
+        font-size: 14px;
+      }
+    }
+
+    mat-card-content {
+      .short-url-container {
+        .short-url-display {
+          padding: 16px;
+
+          .short-url-link {
+            font-size: 16px;
+          }
+        }
+      }
+    }
+  }
+}

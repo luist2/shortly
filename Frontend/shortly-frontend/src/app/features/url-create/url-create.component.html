@@ -1,1 +1,114 @@
-<p>url-create works!</p>
+<div class="create-container">
+  <!-- Card del Formulario -->
+  <mat-card class="create-card" *ngIf="!createdUrl">
+    <mat-card-header>
+      <mat-card-title class="title">
+        <mat-icon class="title-icon">add_link</mat-icon>
+        Shorten Your URL
+      </mat-card-title>
+      <mat-card-subtitle
+        >Paste your long URL below to create a short link</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="urlForm" (ngSubmit)="onSubmit()">
+        <!-- Campo URL Original -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Enter your URL</mat-label>
+          <input
+            matInput
+            type="url"
+            formControlName="originalUrl"
+            placeholder="https://example.com/your-long-url"
+            autocomplete="url"
+          />
+          <mat-icon matPrefix>link</mat-icon>
+          <mat-error *ngIf="urlForm.get('originalUrl')?.invalid">
+            {{ getErrorMessage("originalUrl") }}
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Botón Submit -->
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          class="full-width submit-button"
+          [disabled]="isLoading"
+        >
+          <mat-spinner
+            *ngIf="isLoading"
+            diameter="20"
+            class="button-spinner"
+          ></mat-spinner>
+          <span *ngIf="!isLoading">
+            <mat-icon>content_cut</mat-icon>
+            Shorten URL
+          </span>
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Card del Resultado (se muestra después de crear) -->
+  <mat-card class="result-card" *ngIf="createdUrl">
+    <mat-card-header>
+      <mat-card-title class="title success-title">
+        <mat-icon class="title-icon success-icon">check_circle</mat-icon>
+        URL Shortened Successfully!
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- URL Original -->
+      <div class="url-info">
+        <label class="url-label">
+          <mat-icon>link</mat-icon>
+          Original URL:
+        </label>
+        <p class="original-url">{{ createdUrl.originalUrl }}</p>
+      </div>
+
+      <!-- Short URL (destacada) -->
+      <div class="short-url-container">
+        <label class="url-label">
+          <mat-icon>star</mat-icon>
+          Your Short URL:
+        </label>
+        <div class="short-url-display">
+          <a
+            [href]="createdUrl.shortUrl"
+            target="_blank"
+            class="short-url-link"
+          >
+            {{ createdUrl.shortUrl }}
+          </a>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="action-buttons">
+        <button mat-raised-button color="primary" class="action-btn">
+          <mat-icon>content_copy</mat-icon>
+          Copy URL
+        </button>
+
+        <button
+          mat-stroked-button
+          color="primary"
+          routerLink="/dashboard"
+          class="action-btn"
+        >
+          <mat-icon>dashboard</mat-icon>
+          View in Dashboard
+        </button>
+
+        <button mat-stroked-button (click)="resetForm()" class="action-btn">
+          <mat-icon>add</mat-icon>
+          Create Another
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

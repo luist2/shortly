@@ -7,9 +7,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
-import { AuthModule } from './features/auth/auth.module';
 
-import { UrlCreateComponent } from './features/url-create/url-create.component';
+// Feature Modules
+import { AuthModule } from './features/auth/auth.module';
+import { DashboardModule } from './features/dashboard/dashboard.module';
+import { UrlCreateModule } from './features/url-create/url-create.module';
+
 import { UrlStatsComponent } from './features/url-stats/url-stats.component';
 
 // Material Modules
@@ -19,11 +22,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { DashboardModule } from './features/dashboard/dashboard.module';
-import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confirm-dialog.component';
 
 @NgModule({
-  declarations: [AppComponent, UrlCreateComponent, UrlStatsComponent],
+  declarations: [AppComponent, UrlStatsComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -33,6 +34,7 @@ import { ConfirmDialogComponent } from './shared/components/confirm-dialog/confi
     // Feature Modules
     AuthModule,
     DashboardModule,
+    UrlCreateModule,
 
     // Material Modules
     MatToolbarModule,
