@@ -37,7 +37,7 @@ export class UrlService {
    */
   getUserUrls(): Observable<ShortUrlResponse[]> {
     return this.http.get<ShortUrlResponse[]>(
-      `${this.apiUrl}/UrlShortener/user/urls`
+      `${this.apiUrl}/UrlShortener/urls`
     );
   }
 
