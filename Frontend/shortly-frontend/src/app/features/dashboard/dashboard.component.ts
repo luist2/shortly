@@ -156,13 +156,15 @@ export class DashboardComponent implements OnInit {
     if (success) {
       this.snackBar.open('✓ URL copied to clipboard!', 'Close', {
         duration: 3000,
-        horizontalPosition: 'center',
+        horizontalPosition: 'right',
         verticalPosition: 'bottom',
         panelClass: ['success-snackbar'],
       });
     } else {
       this.snackBar.open('Failed to copy URL', 'Close', {
         duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
         panelClass: ['error-snackbar'],
       });
     }
@@ -218,7 +220,7 @@ export class DashboardComponent implements OnInit {
         // Mostrar mensaje de éxito
         this.snackBar.open('✓ URL deleted successfully', 'Close', {
           duration: 3000,
-          horizontalPosition: 'center',
+          horizontalPosition: 'right',
           verticalPosition: 'bottom',
           panelClass: ['success-snackbar'],
         });
@@ -228,7 +230,9 @@ export class DashboardComponent implements OnInit {
 
         // Mostrar mensaje de error
         this.snackBar.open('Failed to delete URL. Please try again.', 'Close', {
-          duration: 4000,
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
           panelClass: ['error-snackbar'],
         });
       },

@@ -89,7 +89,12 @@
 
       <!-- Botones de Acción -->
       <div class="action-buttons">
-        <button mat-raised-button color="primary" class="action-btn">
+        <button
+          mat-raised-button
+          color="primary"
+          class="action-btn"
+          (click)="copyToClipboard()"
+        >
           <mat-icon>content_copy</mat-icon>
           Copy URL
         </button>

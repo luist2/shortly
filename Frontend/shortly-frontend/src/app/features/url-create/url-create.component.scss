@@ -194,27 +194,6 @@
   }
 }
 
-// Estilos para snackbars
-::ng-deep {
-  .success-snackbar {
-    background-color: #4caf50;
-    color: white;
-
-    .mat-simple-snackbar-action {
-      color: white;
-    }
-  }
-
-  .error-snackbar {
-    background-color: #f44336;
-    color: white;
-
-    .mat-simple-snackbar-action {
-      color: white;
-    }
-  }
-}
-
 // Responsive
 @media (max-width: 600px) {
   .create-container {

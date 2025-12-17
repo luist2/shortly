@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UrlService } from 'src/app/core/services/url.service';
 import { ShortUrlResponse } from 'src/app/models/short-url.model';
+import { Clipboard } from '@angular/cdk/clipboard';
 
 @Component({
   selector: 'app-url-create',
@@ -18,7 +19,8 @@ export class UrlCreateComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private urlService: UrlService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private clipboard: Clipboard
   ) {}
 
   ngOnInit(): void {
@@ -52,6 +54,13 @@ export class UrlCreateComponent implements OnInit {
         this.isLoading = false;
         this.createdUrl = response;
         this.urlForm.reset();
+
+        this.snackBar.open('Short URL created successfully!', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
+          panelClass: ['success-snackbar'],
+        });
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
@@ -77,11 +86,35 @@ export class UrlCreateComponent implements OnInit {
         }
 
         this.snackBar.open(errorMessage, 'Close', {
-          duration: 5000,
-          panelClass: ['snackbar-error'],
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
+          panelClass: ['error-snackbar'],
         });
       },
     });
+  }
+
+  copyToClipboard(): void {
+    if (!this.createdUrl) return;
+
+    const success = this.clipboard.copy(this.createdUrl.shortUrl);
+
+    if (success) {
+      this.snackBar.open('✓ URL copied to clipboard!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        panelClass: ['success-snackbar'],
+      });
+    } else {
+      this.snackBar.open('Failed to copy URL', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        panelClass: ['error-snackbar'],
+      });
+    }
   }
 
   getErrorMessage(field: string): string {
