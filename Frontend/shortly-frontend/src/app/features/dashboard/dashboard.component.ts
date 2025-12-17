@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
@@ -22,7 +22,10 @@ import { MatSort } from '@angular/material/sort';
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
-  @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild(MatSort)
+  set matSort(sort: MatSort) {
+    this.dataSource.sort = sort;
+  }
 
   // Columnas de la tabla
   displayedColumns: string[] = [
@@ -56,13 +59,15 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserUrls();
     this.setupFilter();
-  }
 
-  /**
-   * Inicializa la ordenación de la tabla después de que la vista se haya inicializado.
-   */
-  ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
+    this.dataSource.sortingDataAccessor = (item, property) => {
+      switch (property) {
+        case 'createdAt':
+          return new Date(item.createdAt).getTime();
+        default:
+          return (item as any)[property];
+      }
+    };
   }
 
   /**
