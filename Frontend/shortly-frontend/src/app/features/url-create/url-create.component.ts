@@ -32,7 +32,7 @@ export class UrlCreateComponent implements OnInit {
         [
           Validators.required,
           Validators.pattern(
-            /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+            /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/
           ),
         ],
       ],
