@@ -13,8 +13,6 @@ import { AuthModule } from './features/auth/auth.module';
 import { DashboardModule } from './features/dashboard/dashboard.module';
 import { UrlCreateModule } from './features/url-create/url-create.module';
 
-import { UrlStatsComponent } from './features/url-stats/url-stats.component';
-
 // Material Modules
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -22,9 +20,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { UrlStatsModule } from './features/url-stats/url-stats.module';
 
 @NgModule({
-  declarations: [AppComponent, UrlStatsComponent],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -35,6 +34,7 @@ import { MatDividerModule } from '@angular/material/divider';
     AuthModule,
     DashboardModule,
     UrlCreateModule,
+    UrlStatsModule,
 
     // Material Modules
     MatToolbarModule,

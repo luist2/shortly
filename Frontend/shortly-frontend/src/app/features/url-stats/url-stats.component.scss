@@ -1,0 +1,305 @@
+.stats-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stats-header {
+  margin-bottom: 24px;
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+// Estado de Carga
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  p {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 16px;
+  }
+}
+
+// Tarjeta de Error
+.error-card {
+  margin-bottom: 24px;
+  .error-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+    p {
+      margin: 0;
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+}
+
+// Contenido de Estadísticas
+.stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// Card: Información de la URL
+.url-info-card {
+  mat-card-header {
+    margin-bottom: 16px;
+  }
+
+  mat-card-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.6);
+      min-width: 150px;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: rgba(0, 0, 0, 0.54);
+      }
+    }
+
+    .info-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      justify-content: flex-end;
+
+      &.original-url {
+        span {
+          max-width: 500px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          color: rgba(0, 0, 0, 0.87);
+          text-align: right;
+        }
+      }
+
+      .short-url-link {
+        color: #1976d2;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 16px;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .status-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        font-weight: 500;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        &.status-active {
+          background-color: #e8f5e9;
+          color: #2e7d32;
+        }
+
+        &.status-inactive {
+          background-color: #ffebee;
+          color: #c62828;
+        }
+      }
+    }
+  }
+}
+
+// Card: Métricas
+.metrics-card {
+  mat-card-header {
+    margin-bottom: 16px;
+  }
+
+  mat-card-title {
+    font-size: 20px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+  }
+
+  .metric-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-icon {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: #1976d2;
+    }
+
+    .metric-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .metric-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .metric-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.87);
+      }
+    }
+  }
+}
+
+// Card: Acciones
+.actions-card {
+  mat-card-content {
+    padding: 16px;
+  }
+
+  .actions-container {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    button {
+      min-width: 180px;
+
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+}
+
+// Diseño Responsivo
+@media (max-width: 960px) {
+  .stats-container {
+    padding: 16px;
+  }
+
+  .stats-header h1 {
+    font-size: 24px;
+  }
+
+  .url-info-card {
+    .info-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+
+      .info-label {
+        min-width: auto;
+      }
+
+      .info-value {
+        justify-content: flex-start;
+        width: 100%;
+
+        &.original-url span {
+          text-align: left;
+          max-width: 100%;
+        }
+      }
+    }
+  }
+
+  .metrics-card {
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-container {
+    padding: 12px;
+  }
+
+  .actions-card {
+    .actions-container {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+
+  .metric-item {
+    .metric-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
+    .metric-info {
+      .metric-value {
+        font-size: 20px;
+      }
+    }
+  }
+}

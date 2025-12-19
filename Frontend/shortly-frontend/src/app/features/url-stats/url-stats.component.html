@@ -1,1 +1,145 @@
-<p>url-stats works!</p>
+<div class="stats-container">
+  <!-- Header del componente de estadísticas -->
+  <div class="stats-header">
+    <h1>URL Statistics</h1>
+  </div>
+
+  <!-- Spinner de carga -->
+  <div class="loading-container">
+    <mat-spinner></mat-spinner>
+    <p>Loading statistics...</p>
+  </div>
+
+  <!-- Mensaje de error -->
+  <mat-card class="error-card">
+    <mat-card-content>
+      <div class="error-content">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <p>Error loading statistics. Please try again.</p>
+      </div>
+      <button mat-raised-button color="primary">Retry</button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Contenido principal de estadísticas -->
+  <div class="stats-content">
+    <!-- Card: Información de la URL -->
+    <mat-card class="url-info-card">
+      <mat-card-header>
+        <mat-card-title>URL Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Short URL -->
+        <div class="info-row">
+          <div class="info-label">
+            <mat-icon>link</mat-icon>
+            <span>Short URL</span>
+          </div>
+          <div class="info-value">
+            <a href="#" target="_blank" class="short-url-link">
+              https://short.ly/abc123
+            </a>
+            <button mat-icon-button matTooltip="Copy URL">
+              <mat-icon>content_copy</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Original URL -->
+        <div class="info-row">
+          <div class="info-label">
+            <mat-icon>open_in_new</mat-icon>
+            <span>Original URL</span>
+          </div>
+          <div class="info-value original-url">
+            <span
+              >https://example.com/very/long/url/path/that/might/be/truncated</span
+            >
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="info-row">
+          <div class="info-label">
+            <mat-icon>info</mat-icon>
+            <span>Status</span>
+          </div>
+          <div class="info-value">
+            <mat-chip class="status-chip status-active">
+              <mat-icon>check_circle</mat-icon>
+              Active
+            </mat-chip>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card: Métricas principales -->
+    <mat-card class="metrics-card">
+      <mat-card-header>
+        <mat-card-title>Metrics</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="metrics-grid">
+          <!-- Total de clicks -->
+          <div class="metric-item">
+            <mat-icon class="metric-icon">bar_chart</mat-icon>
+            <div class="metric-info">
+              <span class="metric-label">Total Clicks</span>
+              <span class="metric-value">1,234</span>
+            </div>
+          </div>
+
+          <!-- Fecha de creación -->
+          <div class="metric-item">
+            <mat-icon class="metric-icon">event</mat-icon>
+            <div class="metric-info">
+              <span class="metric-label">Created At</span>
+              <span class="metric-value">19/12/2024 14:30</span>
+            </div>
+          </div>
+
+          <!-- Última vez accedida -->
+          <div class="metric-item">
+            <mat-icon class="metric-icon">schedule</mat-icon>
+            <div class="metric-info">
+              <span class="metric-label">Last Accessed</span>
+              <span class="metric-value">18/12/2024 09:15</span>
+            </div>
+          </div>
+
+          <!-- Fecha de expiración (opcional) -->
+          <div class="metric-item">
+            <mat-icon class="metric-icon">event_busy</mat-icon>
+            <div class="metric-info">
+              <span class="metric-label">Expires At</span>
+              <span class="metric-value">Never</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Card: Acciones -->
+    <mat-card class="actions-card">
+      <mat-card-content>
+        <div class="actions-container">
+          <button mat-raised-button color="primary">
+            <mat-icon>content_copy</mat-icon>
+            Copy URL
+          </button>
+
+          <button mat-raised-button color="accent">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Dashboard
+          </button>
+
+          <button mat-raised-button color="warn">
+            <mat-icon>delete</mat-icon>
+            Delete URL
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
