@@ -194,6 +194,11 @@ namespace Shortly_API.Services
             if (shortUrl.ExpiresAt.HasValue && shortUrl.ExpiresAt.Value < DateTime.UtcNow)
             {
                 _logger.LogWarning("Short URL with code {ShortCode} has expired at {ExpiresAt}.", shortCode, shortUrl.ExpiresAt);
+
+                // Desactivar la URL expirada
+                shortUrl.IsActive = false;
+                await _repository.SaveChangesAsync();
+
                 throw new InvalidOperationException("This short URL has expired.");
             }
 
