@@ -5,7 +5,7 @@
   </div>
 
   <!-- Spinner de carga -->
-  <div class="loading-container">
+  <div *ngIf="isLoading" class="loading-container">
     <mat-spinner></mat-spinner>
     <p>Loading statistics...</p>
   </div>
