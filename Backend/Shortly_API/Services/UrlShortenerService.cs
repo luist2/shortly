@@ -1,8 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Shortly_API.Data;
-using Shortly_API.Entities;
+﻿using Shortly_API.Entities;
 using Shortly_API.Models.ShortUrlDTOs;
 using Shortly_API.Repositories;
+using Shortly_API.Utils;
 
 namespace Shortly_API.Services
 {
@@ -72,7 +71,9 @@ namespace Shortly_API.Services
                     _logger.LogError("Failed to generate a unique short code after multiple attempts.");
                     throw new Exception("Failed to generate a unique short code after multiple attempts.");
                 }
-                shortCode = ShortCodeGenerator.Generate(8);
+
+                shortCode = ShortCodeGenerator.Generate();
+
             } while (await _repository.ExistsAsync(shortCode));
 
             var shortUrl = new ShortUrl

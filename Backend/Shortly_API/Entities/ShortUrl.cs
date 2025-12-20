@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Shortly_API.Utils;
+using System.ComponentModel.DataAnnotations;
 
 namespace Shortly_API.Entities
 {
@@ -8,8 +9,8 @@ namespace Shortly_API.Entities
         public long Id { get; set; }
 
         [Required]
-        // Máximo 10 caracteres es suficiente (permite 62^10 combinaciones en Base62)
-        [MaxLength(10)]
+        // Máximo 10 caracteres
+        [MaxLength(ShortCodeGenerator.MaxLength)]
         public string ShortCode { get; set; } = string.Empty;
 
         [Required]
