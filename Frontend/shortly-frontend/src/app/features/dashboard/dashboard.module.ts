@@ -1,25 +1,20 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
-// Material Modules
-import { MatTableModule } from '@angular/material/table';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { ClipboardModule } from '@angular/cdk/clipboard';
-import { SharedModule } from 'src/app/shared/shared.module';
+// Material Modules - Específicos de Dashboard
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+
+// Modules
+import { SharedModule } from 'src/app/shared/shared.module';
 
 // Components
 import { DashboardComponent } from './dashboard.component';
-import { FormsModule } from '@angular/forms';
-import { MatSortModule } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 
 const routes: Routes = [
   {
@@ -31,27 +26,18 @@ const routes: Routes = [
 @NgModule({
   declarations: [DashboardComponent],
   imports: [
-    CommonModule,
+    SharedModule,
+
     RouterModule.forChild(routes),
     FormsModule,
 
     // Material Modules
-    MatTableModule,
-    MatProgressSpinnerModule,
-    MatCardModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatSnackBarModule,
-    MatSortModule,
+    MatChipsModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatChipsModule,
-
-    // CDK
-    ClipboardModule,
-    //Shared Module
-    SharedModule,
+    MatSortModule,
+    MatTableModule,
   ],
 })
 export class DashboardModule {}
