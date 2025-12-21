@@ -224,9 +224,12 @@ namespace Shortly_API.Services
                 throw new KeyNotFoundException("Short URL not found or does not belong to the user.");
             }
 
+            var baseDomain = _config["AppSettings:BaseDomain"];
+
             var response = new ShortUrlStatsResponse
             {
                 ShortCode = shortUrl.ShortCode,
+                ShortUrl = $"{baseDomain}/{shortUrl.ShortCode}",
                 OriginalUrl = shortUrl.OriginalUrl,
                 CreatedAt = shortUrl.CreatedAt,
                 ClickCount = shortUrl.ClickCount,
