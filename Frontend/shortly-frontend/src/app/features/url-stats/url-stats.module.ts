@@ -14,6 +14,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 const routes: Routes = [
   {
@@ -41,6 +42,9 @@ const routes: Routes = [
     MatSortModule,
     MatFormFieldModule,
     MatInputModule,
+
+    // Shared Module
+    SharedModule,
   ],
 })
 export class UrlStatsModule {}

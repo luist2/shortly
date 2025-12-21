@@ -1,9 +1,14 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UrlService } from 'src/app/core/services/url.service';
 import { ShortUrlStatsResponse } from 'src/app/models/short-url.model';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-url-stats',
@@ -21,7 +26,8 @@ export class UrlStatsComponent implements OnInit {
     private router: Router,
     private urlService: UrlService,
     private clipboard: Clipboard,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -79,6 +85,64 @@ export class UrlStatsComponent implements OnInit {
         panelClass: ['error-snackbar'],
       });
     }
+  }
+
+  /**
+   * Abre un diálogo de confirmación para eliminar la URL.
+   */
+  deleteUrl(): void {
+    if (!this.urlStats) return;
+
+    const dialogData: ConfirmDialogData = {
+      title: 'Delete URL',
+      message: `Are you sure you want to delete this shortened URL? This action cannot be undone.\n\nShort URL: ${this.urlStats.shortUrl}`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmColor: 'warn',
+    };
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: dialogData,
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        this.performDelete();
+      }
+    });
+  }
+
+  /**
+   * Realiza la eliminación de la URL y maneja la respuesta.
+   */
+  private performDelete(): void {
+    this.urlService.deleteUrl(this.shortCode).subscribe({
+      next: () => {
+        // Mostrar mensaje de éxito
+        this.snackBar.open('✓ URL deleted successfully', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
+          panelClass: ['success-snackbar'],
+        });
+
+        // Redirigir al dashboard después de eliminar
+        this.goToDashboard();
+      },
+      error: (error) => {
+        console.error('Error deleting URL:', error);
+
+        // Mostrar mensaje de error
+        this.snackBar.open('Failed to delete URL. Please try again.', 'Close', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
+          panelClass: ['error-snackbar'],
+        });
+      },
+    });
   }
 
   /**
