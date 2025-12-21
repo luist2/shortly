@@ -1,4 +1,6 @@
+import { Clipboard } from '@angular/cdk/clipboard';
 import { Component, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UrlService } from 'src/app/core/services/url.service';
 import { ShortUrlStatsResponse } from 'src/app/models/short-url.model';
@@ -17,7 +19,9 @@ export class UrlStatsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private urlService: UrlService
+    private urlService: UrlService,
+    private clipboard: Clipboard,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -31,7 +35,7 @@ export class UrlStatsComponent implements OnInit {
     }
   }
 
-  private loadUrlStats(): void {
+  loadUrlStats(): void {
     this.isLoading = true;
     this.errorMessage = null;
 
@@ -54,6 +58,27 @@ export class UrlStatsComponent implements OnInit {
         }
       },
     });
+  }
+
+  copyToClipboard(): void {
+    if (!this.urlStats) return;
+
+    const success = this.clipboard.copy(this.urlStats.shortUrl);
+    if (success) {
+      this.snackBar.open('✓ URL copied to clipboard!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        panelClass: ['success-snackbar'],
+      });
+    } else {
+      this.snackBar.open('Failed to copy URL', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'right',
+        verticalPosition: 'bottom',
+        panelClass: ['error-snackbar'],
+      });
+    }
   }
 
   /**

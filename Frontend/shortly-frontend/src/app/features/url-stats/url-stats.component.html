@@ -11,19 +11,21 @@
   </div>
 
   <!-- Mensaje de error -->
-  <mat-card class="error-card">
+  <mat-card *ngIf="errorMessage && !isLoading" class="error-card">
     <mat-card-content>
       <div class="error-content">
         <mat-icon color="warn">error_outline</mat-icon>
-        <p>Error loading statistics. Please try again.</p>
+        <p>{{ errorMessage }}</p>
       </div>
-      <button mat-raised-button color="primary">Retry</button>
+      <button mat-raised-button color="primary" (click)="loadUrlStats()">
+        Retry
+      </button>
     </mat-card-content>
   </mat-card>
 
   <!-- Contenido principal de estadísticas -->
-  <div class="stats-content">
-    <!-- Card: Información de la URL -->
+  <div *ngIf="urlStats && !isLoading" class="stats-content">
+    <!-- Card: Información de la URL (5.2.1 Header Principal) -->
     <mat-card class="url-info-card">
       <mat-card-header>
         <mat-card-title>URL Information</mat-card-title>
@@ -36,10 +38,18 @@
             <span>Short URL</span>
           </div>
           <div class="info-value">
-            <a href="#" target="_blank" class="short-url-link">
-              https://short.ly/abc123
+            <a
+              [href]="urlStats.shortUrl"
+              target="_blank"
+              class="short-url-link"
+            >
+              {{ urlStats.shortUrl }}
             </a>
-            <button mat-icon-button matTooltip="Copy URL">
+            <button
+              mat-icon-button
+              matTooltip="Copy URL"
+              (click)="copyToClipboard()"
+            >
               <mat-icon>content_copy</mat-icon>
             </button>
           </div>
@@ -52,9 +62,7 @@
             <span>Original URL</span>
           </div>
           <div class="info-value original-url">
-            <span
-              >https://example.com/very/long/url/path/that/might/be/truncated</span
-            >
+            <span>{{ urlStats.originalUrl }}</span>
           </div>
         </div>
 
@@ -65,16 +73,24 @@
             <span>Status</span>
           </div>
           <div class="info-value">
-            <mat-chip class="status-chip status-active">
-              <mat-icon>check_circle</mat-icon>
-              Active
+            <mat-chip
+              [class]="
+                urlStats.isActive
+                  ? 'status-chip status-active'
+                  : 'status-chip status-inactive'
+              "
+            >
+              <mat-icon>{{
+                urlStats.isActive ? "check_circle" : "cancel"
+              }}</mat-icon>
+              {{ urlStats.isActive ? "Active" : "Inactive" }}
             </mat-chip>
           </div>
         </div>
       </mat-card-content>
     </mat-card>
 
-    <!-- Card: Métricas principales -->
+    <!-- Card: Métricas principales (5.2.2 Métricas Core) -->
     <mat-card class="metrics-card">
       <mat-card-header>
         <mat-card-title>Metrics</mat-card-title>
@@ -86,7 +102,7 @@
             <mat-icon class="metric-icon">bar_chart</mat-icon>
             <div class="metric-info">
               <span class="metric-label">Total Clicks</span>
-              <span class="metric-value">1,234</span>
+              <span class="metric-value">{{ urlStats.clickCount }}</span>
             </div>
           </div>
 
@@ -95,7 +111,9 @@
             <mat-icon class="metric-icon">event</mat-icon>
             <div class="metric-info">
               <span class="metric-label">Created At</span>
-              <span class="metric-value">19/12/2024 14:30</span>
+              <span class="metric-value">{{
+                urlStats.createdAt | date : "dd/MM/yyyy HH:mm"
+              }}</span>
             </div>
           </div>
 
@@ -104,7 +122,13 @@
             <mat-icon class="metric-icon">schedule</mat-icon>
             <div class="metric-info">
               <span class="metric-label">Last Accessed</span>
-              <span class="metric-value">18/12/2024 09:15</span>
+              <span class="metric-value">
+                {{
+                  urlStats.lastAccessedAt
+                    ? (urlStats.lastAccessedAt | date : "dd/MM/yyyy HH:mm")
+                    : "Never"
+                }}
+              </span>
             </div>
           </div>
 
@@ -113,7 +137,13 @@
             <mat-icon class="metric-icon">event_busy</mat-icon>
             <div class="metric-info">
               <span class="metric-label">Expires At</span>
-              <span class="metric-value">Never</span>
+              <span class="metric-value">
+                {{
+                  urlStats.expiresAt
+                    ? (urlStats.expiresAt | date : "dd/MM/yyyy HH:mm")
+                    : "Never"
+                }}
+              </span>
             </div>
           </div>
         </div>
@@ -124,11 +154,6 @@
     <mat-card class="actions-card">
       <mat-card-content>
         <div class="actions-container">
-          <button mat-raised-button color="primary">
-            <mat-icon>content_copy</mat-icon>
-            Copy URL
-          </button>
-
           <button mat-raised-button color="accent" (click)="goToDashboard()">
             <mat-icon>arrow_back</mat-icon>
             Back to Dashboard

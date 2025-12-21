@@ -12,6 +12,7 @@ export interface ShortUrlResponse {
 
 export interface ShortUrlStatsResponse {
   shortCode: string;
+  shortUrl: string;
   originalUrl: string;
   clickCount: number;
   createdAt: string;
