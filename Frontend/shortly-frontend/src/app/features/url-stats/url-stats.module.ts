@@ -7,6 +7,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 const routes: Routes = [
   {
@@ -27,6 +34,13 @@ const routes: Routes = [
     MatCardModule,
     MatIconModule,
     MatChipsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatSnackBarModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
 })
 export class UrlStatsModule {}

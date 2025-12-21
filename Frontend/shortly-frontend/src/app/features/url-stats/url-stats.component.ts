@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UrlService } from 'src/app/core/services/url.service';
 import { ShortUrlStatsResponse } from 'src/app/models/short-url.model';
 
@@ -14,7 +14,11 @@ export class UrlStatsComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
 
-  constructor(private route: ActivatedRoute, private urlService: UrlService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private urlService: UrlService
+  ) {}
 
   ngOnInit(): void {
     // Obtener el parametro shortCode de la URL
@@ -50,5 +54,12 @@ export class UrlStatsComponent implements OnInit {
         }
       },
     });
+  }
+
+  /**
+   * Navega de vuelta al dashboard
+   */
+  goToDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 }
