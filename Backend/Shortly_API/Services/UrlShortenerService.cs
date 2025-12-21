@@ -166,13 +166,17 @@ namespace Shortly_API.Services
                 throw new KeyNotFoundException("Short URL not found or does not belong to the user.");
             }
 
-            if (!shortUrl.IsActive)
+            if (shortUrl.IsDeleted)
             {
-                _logger.LogInformation("Short URL {ShortCode} is already inactive.", shortCode);
-                return false; // Ya está inactivo
+                _logger.LogInformation("Short URL {ShortCode} is already deleted.", shortCode);
+                return false; // Ya está eliminado
             }
 
+            // En lugar de eliminar físicamente, marcar como inactivo y eliminado
             shortUrl.IsActive = false;
+            shortUrl.IsDeleted = true;
+            shortUrl.DeletedAt = DateTime.UtcNow;
+
             await _repository.SaveChangesAsync();
 
             _logger.LogInformation("User {UserId} deleted short URL {ShortCode}.", userId, shortCode);
@@ -256,7 +260,8 @@ namespace Shortly_API.Services
                 OriginalUrl = su.OriginalUrl,
                 ShortUrl = $"{baseDomain}/{su.ShortCode}",
                 CreatedAt = su.CreatedAt,
-                ClickCount = su.ClickCount
+                ClickCount = su.ClickCount,
+                IsActive = su.IsActive
             }).ToList();
 
             _logger.LogInformation("User {UserId} retrieved {Count} short URLs.", userId, response.Count);

@@ -24,6 +24,8 @@ namespace Shortly_API.Entities
         public DateTime? ExpiresAt { get; set; }
         public int ClickCount { get; set; } = 0;
         public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
         public DateTime? LastAccessedAt { get; set; }
 
         // Relacion con la entidad User

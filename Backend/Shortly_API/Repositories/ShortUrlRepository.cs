@@ -29,20 +29,20 @@ namespace Shortly_API.Repositories
                 .FirstOrDefaultAsync(su =>
                     su.ShortCode == shortCode &&
                     su.UserId == userId &&
-                    su.IsActive);
+                    !su.IsDeleted);
         }
 
         public async Task<ShortUrl?> GetByShortCodeAsync(string shortCode)
         {
             return await _context.ShortUrls
-                .FirstOrDefaultAsync(su => su.ShortCode == shortCode && su.IsActive);
+                .FirstOrDefaultAsync(su => su.ShortCode == shortCode && su.IsActive && !su.IsDeleted);
         }
 
         public Task<List<ShortUrl>> GetByUserIdAsync(Guid userId)
         {
-            // Devolver URLs activas y ordenadas por fecha de creación descendente
+            // Devolver URLs no eliminadas y ordenadas por fecha de creación descendente
             return _context.ShortUrls
-                .Where(su => su.UserId == userId && su.IsActive)
+                .Where(su => su.UserId == userId && !su.IsDeleted)
                 .OrderByDescending(su => su.CreatedAt)
                 .ToListAsync();
         }
