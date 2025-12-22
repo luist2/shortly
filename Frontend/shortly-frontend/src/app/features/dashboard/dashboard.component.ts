@@ -22,9 +22,18 @@ import { MatSort } from '@angular/material/sort';
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
-  @ViewChild(MatSort)
-  set matSort(sort: MatSort) {
-    this.dataSource.sort = sort;
+  @ViewChild('activeSort')
+  set activeMatSort(sort: MatSort) {
+    if (sort) {
+      this.activeDataSource.sort = sort;
+    }
+  }
+
+  @ViewChild('inactiveSort')
+  set inactiveMatSort(sort: MatSort) {
+    if (sort) {
+      this.inactiveDataSource.sort = sort;
+    }
   }
 
   // Columnas de la tabla
@@ -37,7 +46,8 @@ export class DashboardComponent implements OnInit {
   ];
 
   // Datos de la tabla
-  dataSource = new MatTableDataSource<ShortUrlResponse>([]);
+  activeDataSource = new MatTableDataSource<ShortUrlResponse>([]);
+  inactiveDataSource = new MatTableDataSource<ShortUrlResponse>([]);
 
   // Estado de carga
   isLoading = false;
@@ -58,9 +68,15 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserUrls();
-    this.setupFilter();
+    this.setupFilters();
+    this.setupSorting();
+  }
 
-    this.dataSource.sortingDataAccessor = (item, property) => {
+  /**
+   * Configura el sorting para ambos datasources.
+   */
+  private setupSorting(): void {
+    const sortingAccessor = (item: ShortUrlResponse, property: string) => {
       switch (property) {
         case 'createdAt':
           return new Date(item.createdAt).getTime();
@@ -68,19 +84,22 @@ export class DashboardComponent implements OnInit {
           return (item as any)[property];
       }
     };
+
+    this.activeDataSource.sortingDataAccessor = sortingAccessor;
+    this.inactiveDataSource.sortingDataAccessor = sortingAccessor;
   }
 
   /**
-   * Configura el filtro personalizado para el datasource.
+   * Configura el filtro personalizado para ambos datasources.
    */
-  private setupFilter(): void {
-    this.dataSource.filterPredicate = (
+  private setupFilters(): void {
+    const filterPredicate = (
       data: ShortUrlResponse,
       filter: string
     ): boolean => {
       const searchStr = filter.toLowerCase();
 
-      // Buscar en shortUrl, originalUrl y shortCode
+      // Verificar coincidencias en los campos
       const matchesShortUrl = data.shortUrl.toLowerCase().includes(searchStr);
       const matchesOriginalUrl = data.originalUrl
         .toLowerCase()
@@ -95,10 +114,13 @@ export class DashboardComponent implements OnInit {
         matchesClicks
       );
     };
+
+    this.activeDataSource.filterPredicate = filterPredicate;
+    this.inactiveDataSource.filterPredicate = filterPredicate;
   }
 
   /**
-   * Carga las URLs del usuario desde el backend.
+   * Carga las URLs del usuario desde el backend y las separa en activas e inactivas.
    */
   loadUserUrls(): void {
     this.isLoading = true;
@@ -106,7 +128,12 @@ export class DashboardComponent implements OnInit {
 
     this.urlService.getUserUrls().subscribe({
       next: (urls) => {
-        this.dataSource.data = urls;
+        const activeUrls = urls.filter((url) => url.isActive);
+        const inactiveUrls = urls.filter((url) => !url.isActive);
+
+        this.activeDataSource.data = activeUrls;
+        this.inactiveDataSource.data = inactiveUrls;
+
         this.isLoading = false;
       },
       error: (error) => {
@@ -118,18 +145,21 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
-   * Aplica el filtro de búsqueda al datasource.
+   * Aplica el filtro de búsqueda a ambos datasources.
    */
   applyFilter(): void {
-    this.dataSource.filter = this.searchTerm.trim().toLowerCase();
+    const filterValue = this.searchTerm.trim().toLowerCase();
+    this.activeDataSource.filter = filterValue;
+    this.inactiveDataSource.filter = filterValue;
   }
 
   /**
-   * Limpia el término de búsqueda y el filtro del datasource.
+   * Limpia el término de búsqueda y el filtro de ambos datasources.
    */
   clearSearch(): void {
     this.searchTerm = '';
-    this.dataSource.filter = '';
+    this.activeDataSource.filter = '';
+    this.inactiveDataSource.filter = '';
   }
 
   /**
@@ -143,7 +173,31 @@ export class DashboardComponent implements OnInit {
    * Obtiene el conteo de resultados filtrados.
    */
   get filteredResultsCount(): number {
-    return this.dataSource.filteredData.length;
+    return (
+      this.activeDataSource.filteredData.length +
+      this.inactiveDataSource.filteredData.length
+    );
+  }
+
+  /**
+   * Verifica si hay URLs activas.
+   */
+  get hasActiveUrls(): boolean {
+    return this.activeDataSource.data.length > 0;
+  }
+
+  /**
+   * Verifica si hay URLs inactivas.
+   */
+  get hasInactiveUrls(): boolean {
+    return this.inactiveDataSource.data.length > 0;
+  }
+
+  /**
+   * Verifica si hay URLs en total.
+   */
+  get hasUrls(): boolean {
+    return this.hasActiveUrls || this.hasInactiveUrls;
   }
 
   /**
@@ -211,11 +265,18 @@ export class DashboardComponent implements OnInit {
   private performDelete(url: ShortUrlResponse): void {
     this.urlService.deleteUrl(url.shortCode).subscribe({
       next: () => {
-        // Eliminar de la tabla
-        const currentData = this.dataSource.data;
-        this.dataSource.data = currentData.filter(
-          (u) => u.shortCode !== url.shortCode
-        );
+        // Eliminar de la tabla correspondiente
+        if (url.isActive) {
+          const currentData = this.activeDataSource.data;
+          this.activeDataSource.data = currentData.filter(
+            (u) => u.shortCode !== url.shortCode
+          );
+        } else {
+          const currentData = this.inactiveDataSource.data;
+          this.inactiveDataSource.data = currentData.filter(
+            (u) => u.shortCode !== url.shortCode
+          );
+        }
 
         // Mostrar mensaje de éxito
         this.snackBar.open('✓ URL deleted successfully', 'Close', {
@@ -238,14 +299,6 @@ export class DashboardComponent implements OnInit {
       },
     });
   }
-
-  /**
-   * Verifica si hay URLs para mostrar.
-   */
-  get hasUrls(): boolean {
-    return this.dataSource.data.length > 0;
-  }
-
   /**
    * Verifica si se debe mostrar el estado vacío.
    */

@@ -8,6 +8,7 @@ export interface ShortUrlResponse {
   originalUrl: string;
   createdAt: string; // ISO date string
   clickCount: number;
+  isActive: boolean;
 }
 
 export interface ShortUrlStatsResponse {
