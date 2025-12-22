@@ -3,8 +3,8 @@
     <!-- SIDENAV real -->
     <mat-sidenav #drawer mode="over" class="mobile-sidenav">
       <nav>
-        <a mat-list-item routerLink="/dashboard">Dashboard</a>
         <a mat-list-item routerLink="/urls/new">New URL</a>
+        <a mat-list-item routerLink="/dashboard">Dashboard</a>
         <button mat-list-item (click)="logout()">Logout</button>
       </nav>
     </mat-sidenav>
@@ -24,13 +24,13 @@
         <span class="spacer"></span>
 
         <nav class="nav-links" *ngIf="isAuthenticated()">
-          <a mat-button routerLink="/dashboard" routerLinkActive="active">
-            <mat-icon>dashboard</mat-icon>
-            Dashboard
-          </a>
           <a mat-button routerLink="/urls/new" routerLinkActive="active">
             <mat-icon>add_link</mat-icon>
             Nueva URL
+          </a>
+          <a mat-button routerLink="/dashboard" routerLinkActive="active">
+            <mat-icon>dashboard</mat-icon>
+            Dashboard
           </a>
         </nav>
 
