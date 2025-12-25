@@ -79,9 +79,17 @@
   }
 }
 
-// Tarjeta de Búsqueda
-.search-card {
+// ========================================
+// NUEVOS ESTILOS: Tarjeta de Controles Unificados
+// ========================================
+.controls-card {
   margin-bottom: 16px;
+
+  .mat-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
 
   .search-container {
     display: flex;
@@ -94,16 +102,58 @@
       min-width: 300px;
       margin: 0;
     }
+  }
 
-    .results-info {
+  // Toggle buttons de estado
+  .status-filters {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    mat-button-toggle-group {
+      box-shadow: none;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    mat-button-toggle {
       display: flex;
       align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
 
-      mat-chip {
-        background-color: #e3f2fd;
-        color: #1976d2;
-        font-weight: 500;
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
       }
+    }
+
+    // Estilos para el toggle seleccionado
+    .mat-button-toggle-checked {
+      background-color: #1976d2;
+      color: white;
+
+      mat-icon {
+        color: white;
+      }
+    }
+  }
+
+  .results-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    mat-chip {
+      background-color: #e3f2fd;
+      color: #1976d2;
+      font-weight: 500;
+      font-size: 14px;
     }
   }
 }
@@ -160,6 +210,43 @@
     td {
       font-size: 14px;
       color: rgba(0, 0, 0, 0.87);
+    }
+
+    // =========================
+    // Estado con Dot Indicator
+    // =========================
+    .status-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+
+      &::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      &.active {
+        color: #2e7d32;
+
+        &::before {
+          background-color: #4caf50;
+          box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+      }
+
+      &.inactive {
+        color: #757575;
+
+        &::before {
+          background-color: #9e9e9e;
+          box-shadow: 0 0 0 3px rgba(158, 158, 158, 0.15);
+        }
+      }
     }
 
     // Celda de URL acortada
@@ -238,12 +325,26 @@
     font-size: 24px;
   }
 
-  .search-card .search-container {
-    flex-direction: column;
-    align-items: stretch;
+  .controls-card {
+    .search-container {
+      flex-direction: column;
+      align-items: stretch;
 
-    .search-field {
-      width: 100%;
+      .search-field {
+        width: 100%;
+        min-width: 100%;
+      }
+    }
+
+    .status-filters {
+      mat-button-toggle-group {
+        width: 100%;
+      }
+
+      mat-button-toggle {
+        flex: 1;
+        justify-content: center;
+      }
     }
 
     .results-info {
@@ -263,9 +364,16 @@
     padding: 12px;
   }
 
-  .search-card {
-    .search-field {
-      min-width: 100%;
+  .controls-card {
+    .status-filters {
+      mat-button-toggle-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      mat-button-toggle {
+        width: 100%;
+      }
     }
   }
 
@@ -279,6 +387,19 @@
     .actions-cell {
       flex-direction: column;
       gap: 2px;
+    }
+
+    // Chips más pequeños en móvil
+    .active-chip,
+    .inactive-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
     }
   }
 }

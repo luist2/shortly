@@ -1,9 +1,10 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
+import { MatSort } from '@angular/material/sort';
 
 // Servicios
 import { UrlService } from 'src/app/core/services/url.service';
@@ -14,7 +15,8 @@ import {
   ConfirmDialogComponent,
   ConfirmDialogData,
 } from 'src/app/shared/components/confirm-dialog/confirm-dialog.component';
-import { MatSort } from '@angular/material/sort';
+
+type UrlStatusFilter = 'all' | 'active' | 'inactive';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,22 +24,14 @@ import { MatSort } from '@angular/material/sort';
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
-  @ViewChild('activeSort')
-  set activeMatSort(sort: MatSort) {
-    if (sort) {
-      this.activeDataSource.sort = sort;
-    }
-  }
-
-  @ViewChild('inactiveSort')
-  set inactiveMatSort(sort: MatSort) {
-    if (sort) {
-      this.inactiveDataSource.sort = sort;
-    }
+  @ViewChild(MatSort)
+  set matSort(sort: MatSort) {
+    this.dataSource.sort = sort;
   }
 
   // Columnas de la tabla
   displayedColumns: string[] = [
+    'status',
     'shortUrl',
     'originalUrl',
     'clickCount',
@@ -45,9 +39,11 @@ export class DashboardComponent implements OnInit {
     'actions',
   ];
 
-  // Datos de la tabla
-  activeDataSource = new MatTableDataSource<ShortUrlResponse>([]);
-  inactiveDataSource = new MatTableDataSource<ShortUrlResponse>([]);
+  // Datos de la tabla unificada
+  dataSource = new MatTableDataSource<ShortUrlResponse>([]);
+
+  // Todas las URLs sin filtrar
+  allUrls: ShortUrlResponse[] = [];
 
   // Estado de carga
   isLoading = false;
@@ -55,8 +51,11 @@ export class DashboardComponent implements OnInit {
   // Control de errores
   errorMessage: string | null = null;
 
-  // Control de busqueda
+  // Control de búsqueda
   searchTerm: string = '';
+
+  // Filtro de estado (activo/inactivo)
+  statusFilter: UrlStatusFilter = 'all';
 
   constructor(
     private urlService: UrlService,
@@ -73,54 +72,69 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
-   * Configura el sorting para ambos datasources.
+   * Configura el sorting para el datasource.
    */
   private setupSorting(): void {
-    const sortingAccessor = (item: ShortUrlResponse, property: string) => {
+    this.dataSource.sortingDataAccessor = (
+      item: ShortUrlResponse,
+      property: string
+    ) => {
       switch (property) {
         case 'createdAt':
           return new Date(item.createdAt).getTime();
+        case 'status':
+          return item.isActive ? 0 : 1; // Activos primero
         default:
           return (item as any)[property];
       }
     };
-
-    this.activeDataSource.sortingDataAccessor = sortingAccessor;
-    this.inactiveDataSource.sortingDataAccessor = sortingAccessor;
   }
 
   /**
-   * Configura el filtro personalizado para ambos datasources.
+   * Configura el filtro personalizado para el datasource.
    */
   private setupFilters(): void {
-    const filterPredicate = (
+    this.dataSource.filterPredicate = (
       data: ShortUrlResponse,
       filter: string
     ): boolean => {
-      const searchStr = filter.toLowerCase();
+      const filterObj = JSON.parse(filter);
+      const searchStr = filterObj.search.toLowerCase();
+      const status = filterObj.status;
 
-      // Verificar coincidencias en los campos
-      const matchesShortUrl = data.shortUrl.toLowerCase().includes(searchStr);
-      const matchesOriginalUrl = data.originalUrl
-        .toLowerCase()
-        .includes(searchStr);
-      const matchesShortCode = data.shortCode.toLowerCase().includes(searchStr);
-      const matchesClicks = data.clickCount.toString().includes(searchStr);
+      // Filtro por estado
+      let matchesStatus = true;
+      if (status === 'active') {
+        matchesStatus = data.isActive;
+      } else if (status === 'inactive') {
+        matchesStatus = !data.isActive;
+      }
 
-      return (
-        matchesShortUrl ||
-        matchesOriginalUrl ||
-        matchesShortCode ||
-        matchesClicks
-      );
+      // Filtro por búsqueda
+      let matchesSearch = true;
+      if (searchStr) {
+        const matchesShortUrl = data.shortUrl.toLowerCase().includes(searchStr);
+        const matchesOriginalUrl = data.originalUrl
+          .toLowerCase()
+          .includes(searchStr);
+        const matchesShortCode = data.shortCode
+          .toLowerCase()
+          .includes(searchStr);
+        const matchesClicks = data.clickCount.toString().includes(searchStr);
+
+        matchesSearch =
+          matchesShortUrl ||
+          matchesOriginalUrl ||
+          matchesShortCode ||
+          matchesClicks;
+      }
+
+      return matchesStatus && matchesSearch;
     };
-
-    this.activeDataSource.filterPredicate = filterPredicate;
-    this.inactiveDataSource.filterPredicate = filterPredicate;
   }
 
   /**
-   * Carga las URLs del usuario desde el backend y las separa en activas e inactivas.
+   * Carga las URLs del usuario desde el backend.
    */
   loadUserUrls(): void {
     this.isLoading = true;
@@ -128,12 +142,9 @@ export class DashboardComponent implements OnInit {
 
     this.urlService.getUserUrls().subscribe({
       next: (urls) => {
-        const activeUrls = urls.filter((url) => url.isActive);
-        const inactiveUrls = urls.filter((url) => !url.isActive);
-
-        this.activeDataSource.data = activeUrls;
-        this.inactiveDataSource.data = inactiveUrls;
-
+        this.allUrls = urls;
+        this.dataSource.data = urls;
+        this.applyFilters();
         this.isLoading = false;
       },
       error: (error) => {
@@ -145,27 +156,43 @@ export class DashboardComponent implements OnInit {
   }
 
   /**
-   * Aplica el filtro de búsqueda a ambos datasources.
+   * Aplica todos los filtros combinados.
    */
-  applyFilter(): void {
-    const filterValue = this.searchTerm.trim().toLowerCase();
-    this.activeDataSource.filter = filterValue;
-    this.inactiveDataSource.filter = filterValue;
+  private applyFilters(): void {
+    const filterValue = JSON.stringify({
+      search: this.searchTerm.trim().toLowerCase(),
+      status: this.statusFilter,
+    });
+    this.dataSource.filter = filterValue;
   }
 
   /**
-   * Limpia el término de búsqueda y el filtro de ambos datasources.
+   * Aplica el filtro de búsqueda.
+   */
+  applySearchFilter(): void {
+    this.applyFilters();
+  }
+
+  /**
+   * Cambia el filtro de estado.
+   */
+  changeStatusFilter(status: UrlStatusFilter): void {
+    this.statusFilter = status;
+    this.applyFilters();
+  }
+
+  /**
+   * Limpia el término de búsqueda y el filtro.
    */
   clearSearch(): void {
     this.searchTerm = '';
-    this.activeDataSource.filter = '';
-    this.inactiveDataSource.filter = '';
+    this.applyFilters();
   }
 
   /**
-   * Verifica si hay un filtro activo.
+   * Verifica si hay un filtro de búsqueda activo.
    */
-  get hasActiveFilter(): boolean {
+  get hasActiveSearchFilter(): boolean {
     return this.searchTerm.trim().length > 0;
   }
 
@@ -173,36 +200,32 @@ export class DashboardComponent implements OnInit {
    * Obtiene el conteo de resultados filtrados.
    */
   get filteredResultsCount(): number {
-    return (
-      this.activeDataSource.filteredData.length +
-      this.inactiveDataSource.filteredData.length
-    );
+    return this.dataSource.filteredData.length;
   }
 
   /**
-   * Verifica si hay URLs activas.
+   * Obtiene el conteo de URLs activas.
    */
-  get hasActiveUrls(): boolean {
-    return this.activeDataSource.data.length > 0;
+  get activeUrlsCount(): number {
+    return this.allUrls.filter((url) => url.isActive).length;
   }
 
   /**
-   * Verifica si hay URLs inactivas.
+   * Obtiene el conteo de URLs inactivas.
    */
-  get hasInactiveUrls(): boolean {
-    return this.inactiveDataSource.data.length > 0;
+  get inactiveUrlsCount(): number {
+    return this.allUrls.filter((url) => !url.isActive).length;
   }
 
   /**
    * Verifica si hay URLs en total.
    */
   get hasUrls(): boolean {
-    return this.hasActiveUrls || this.hasInactiveUrls;
+    return this.allUrls.length > 0;
   }
 
   /**
    * Copia la URL acortada al portapapeles.
-   * @param shortUrl - URL acortada a copiar.
    */
   copyToClipboard(shortUrl: string): void {
     const success = this.clipboard.copy(shortUrl);
@@ -226,7 +249,6 @@ export class DashboardComponent implements OnInit {
 
   /**
    * Navega a la página de estadísticas de la URL acortada.
-   * @param shortCode - Código corto de la URL.
    */
   viewStats(shortCode: string): void {
     this.router.navigate(['/urls', shortCode, 'stats']);
@@ -234,7 +256,6 @@ export class DashboardComponent implements OnInit {
 
   /**
    * Abre un diálogo de confirmación para eliminar la URL.
-   * @param url - URL a eliminar.
    */
   deleteUrl(url: ShortUrlResponse): void {
     const dialogData: ConfirmDialogData = {
@@ -260,25 +281,17 @@ export class DashboardComponent implements OnInit {
 
   /**
    * Realiza la eliminación de la URL y maneja la respuesta.
-   * @param url - URL a eliminar.
    */
   private performDelete(url: ShortUrlResponse): void {
     this.urlService.deleteUrl(url.shortCode).subscribe({
       next: () => {
-        // Eliminar de la tabla correspondiente
-        if (url.isActive) {
-          const currentData = this.activeDataSource.data;
-          this.activeDataSource.data = currentData.filter(
-            (u) => u.shortCode !== url.shortCode
-          );
-        } else {
-          const currentData = this.inactiveDataSource.data;
-          this.inactiveDataSource.data = currentData.filter(
-            (u) => u.shortCode !== url.shortCode
-          );
-        }
+        // Eliminar de ambas listas
+        this.allUrls = this.allUrls.filter(
+          (u) => u.shortCode !== url.shortCode
+        );
+        this.dataSource.data = this.allUrls;
+        this.applyFilters();
 
-        // Mostrar mensaje de éxito
         this.snackBar.open('✓ URL deleted successfully', 'Close', {
           duration: 3000,
           horizontalPosition: 'right',
@@ -288,8 +301,6 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error deleting URL:', error);
-
-        // Mostrar mensaje de error
         this.snackBar.open('Failed to delete URL. Please try again.', 'Close', {
           duration: 3000,
           horizontalPosition: 'right',
@@ -299,6 +310,7 @@ export class DashboardComponent implements OnInit {
       },
     });
   }
+
   /**
    * Verifica si se debe mostrar el estado vacío.
    */
@@ -306,9 +318,14 @@ export class DashboardComponent implements OnInit {
     return !this.isLoading && !this.errorMessage && !this.hasUrls;
   }
 
+  /**
+   * Verifica si no hay resultados de búsqueda.
+   */
   get hasNoSearchResults(): boolean {
     return (
-      this.hasActiveFilter && this.hasUrls && this.filteredResultsCount === 0
+      (this.hasActiveSearchFilter || this.statusFilter !== 'all') &&
+      this.hasUrls &&
+      this.filteredResultsCount === 0
     );
   }
 }

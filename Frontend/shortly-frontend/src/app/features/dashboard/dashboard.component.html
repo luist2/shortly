@@ -36,16 +36,17 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- Barra de búsqueda y controles (solo si hay URLs) -->
-  <mat-card *ngIf="hasUrls && !isLoading" class="search-card">
+  <!-- Controles de búsqueda y filtros (solo si hay URLs) -->
+  <mat-card *ngIf="hasUrls && !isLoading" class="controls-card">
     <mat-card-content>
+      <!-- Barra de búsqueda -->
       <div class="search-container">
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Search URLs</mat-label>
           <input
             matInput
             [(ngModel)]="searchTerm"
-            (input)="applyFilter()"
+            (input)="applySearchFilter()"
             placeholder="Search by URL, code, or clicks..."
             autocomplete="off"
           />
@@ -53,7 +54,7 @@
           <button
             mat-icon-button
             matSuffix
-            *ngIf="hasActiveFilter"
+            *ngIf="hasActiveSearchFilter"
             (click)="clearSearch()"
             matTooltip="Clear search"
             aria-label="Clear search"
@@ -61,172 +62,84 @@
             <mat-icon>close</mat-icon>
           </button>
         </mat-form-field>
+      </div>
 
-        <!-- Contador de resultados -->
-        <div class="results-info" *ngIf="hasActiveFilter">
-          <mat-chip>
-            {{ filteredResultsCount }} result<span
-              *ngIf="filteredResultsCount !== 1"
-              >s</span
-            >
-            found
-          </mat-chip>
-        </div>
+      <!-- Filtros de estado con toggle buttons -->
+      <div class="status-filters">
+        <mat-button-toggle-group
+          [value]="statusFilter"
+          (change)="changeStatusFilter($event.value)"
+          aria-label="URL Status Filter"
+        >
+          <mat-button-toggle value="all">
+            <mat-icon>link</mat-icon>
+            All ({{ allUrls.length }})
+          </mat-button-toggle>
+          <mat-button-toggle value="active">
+            <mat-icon>check_circle</mat-icon>
+            Active ({{ activeUrlsCount }})
+          </mat-button-toggle>
+          <mat-button-toggle value="inactive">
+            <mat-icon>cancel</mat-icon>
+            Inactive ({{ inactiveUrlsCount }})
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <!-- Contador de resultados -->
+      <div
+        class="results-info"
+        *ngIf="hasActiveSearchFilter || statusFilter !== 'all'"
+      >
+        <mat-chip>
+          {{ filteredResultsCount }} result<span
+            *ngIf="filteredResultsCount !== 1"
+            >s</span
+          >
+          found
+        </mat-chip>
       </div>
     </mat-card-content>
   </mat-card>
 
-  <!-- Estado de "sin resultados de búsqueda" -->
+  <!-- Estado de "sin resultados de búsqueda/filtros" -->
   <mat-card *ngIf="hasNoSearchResults" class="no-results-card">
     <mat-card-content>
       <mat-icon class="no-results-icon">search_off</mat-icon>
       <h3>No results found</h3>
-      <p>Try adjusting your search term</p>
-      <button mat-stroked-button (click)="clearSearch()">Clear Search</button>
+      <p>Try adjusting your search term or filters</p>
+      <button
+        mat-stroked-button
+        (click)="clearSearch(); changeStatusFilter('all')"
+      >
+        Clear All Filters
+      </button>
     </mat-card-content>
   </mat-card>
 
-  <!-- CARD DE URLs ACTIVAS -->
+  <!-- Tabla unificada de URLs -->
   <mat-card
-    *ngIf="hasActiveUrls && !isLoading && !hasNoSearchResults"
-    class="table-card active-urls-card"
+    *ngIf="hasUrls && !isLoading && !hasNoSearchResults"
+    class="table-card"
   >
-    <mat-card-header>
-      <mat-card-title class="card-title-with-icon">
-        <mat-icon class="status-icon active">check_circle</mat-icon>
-        <span>Active URLs</span>
-        <mat-chip class="count-chip">{{
-          activeDataSource.data.length
-        }}</mat-chip>
-      </mat-card-title>
-    </mat-card-header>
     <mat-card-content>
       <div class="table-container">
-        <table
-          mat-table
-          [dataSource]="activeDataSource"
-          #activeSort="matSort"
-          matSort
-          class="urls-table"
-        >
-          <!-- Columna: Short URL -->
-          <ng-container matColumnDef="shortUrl">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Short URL</th>
+        <table mat-table [dataSource]="dataSource" matSort class="urls-table">
+          <!-- Columna: Estado -->
+          <!-- Columna: Estado -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
             <td mat-cell *matCellDef="let url">
-              <div class="short-url-cell">
-                <mat-icon class="link-icon">link</mat-icon>
-                <a [href]="url.shortUrl" target="_blank" class="short-url-link">
-                  {{ url.shortUrl }}
-                </a>
-              </div>
+              <span
+                class="status-dot"
+                [class.active]="url.isActive"
+                [class.inactive]="!url.isActive"
+              >
+                {{ url.isActive ? "Active" : "Inactive" }}
+              </span>
             </td>
           </ng-container>
 
-          <!-- Columna: URL original -->
-          <ng-container matColumnDef="originalUrl">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>
-              Original URL
-            </th>
-            <td mat-cell *matCellDef="let url">
-              <div class="original-url-cell" [title]="url.originalUrl">
-                {{ url.originalUrl }}
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Columna: número de clics -->
-          <ng-container matColumnDef="clickCount">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Clicks</th>
-            <td mat-cell *matCellDef="let url">
-              <div class="clicks-cell">
-                <mat-icon class="click-icon">bar_chart</mat-icon>
-                <span class="click-count">{{ url.clickCount }}</span>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Columna: fecha de creación -->
-          <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>
-              Created At
-            </th>
-            <td mat-cell *matCellDef="let url">
-              {{ url.createdAt | date : "dd/MM/yyyy HH:mm" }}
-            </td>
-          </ng-container>
-
-          <!-- Columna: acciones -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let url">
-              <div class="actions-cell">
-                <!-- Botón Copiar -->
-                <button
-                  mat-icon-button
-                  color="primary"
-                  matTooltip="Copy URL"
-                  (click)="copyToClipboard(url.shortUrl)"
-                  aria-label="Copy URL to clipboard"
-                >
-                  <mat-icon>content_copy</mat-icon>
-                </button>
-
-                <!-- Botón Ver Stats -->
-                <button
-                  mat-icon-button
-                  color="accent"
-                  matTooltip="View statistics"
-                  (click)="viewStats(url.shortCode)"
-                  aria-label="View URL statistics"
-                >
-                  <mat-icon>analytics</mat-icon>
-                </button>
-
-                <!-- Botón Eliminar -->
-                <button
-                  mat-icon-button
-                  color="warn"
-                  matTooltip="Delete URL"
-                  (click)="deleteUrl(url)"
-                  aria-label="Delete URL"
-                >
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Header y filas de la tabla -->
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-        </table>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- CARD DE URLs INACTIVAS -->
-  <mat-card
-    *ngIf="hasInactiveUrls && !isLoading && !hasNoSearchResults"
-    class="table-card inactive-urls-card"
-  >
-    <mat-card-header>
-      <mat-card-title class="card-title-with-icon">
-        <mat-icon class="status-icon inactive">cancel</mat-icon>
-        <span>Inactive URLs</span>
-        <mat-chip class="count-chip">{{
-          inactiveDataSource.data.length
-        }}</mat-chip>
-      </mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="table-container">
-        <table
-          mat-table
-          [dataSource]="inactiveDataSource"
-          #inactiveSort="matSort"
-          matSort
-          class="urls-table"
-        >
           <!-- Columna: Short URL -->
           <ng-container matColumnDef="shortUrl">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Short URL</th>
