@@ -26,7 +26,7 @@
         <nav class="nav-links" *ngIf="isAuthenticated()">
           <a mat-button routerLink="/urls/new" routerLinkActive="active">
             <mat-icon>add_link</mat-icon>
-            Nueva URL
+            New URL
           </a>
           <a mat-button routerLink="/dashboard" routerLinkActive="active">
             <mat-icon>dashboard</mat-icon>
@@ -50,7 +50,7 @@
             <mat-divider></mat-divider>
             <button mat-menu-item (click)="logout()">
               <mat-icon>logout</mat-icon>
-              <span>Cerrar Sesión</span>
+              <span>Logout</span>
             </button>
           </mat-menu>
         </div>
