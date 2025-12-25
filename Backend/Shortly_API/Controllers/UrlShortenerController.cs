@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Shortly_API.Middleware;
 using Shortly_API.Models.ShortUrlDTOs;
 using Shortly_API.Services;
 using System.Security.Claims;
@@ -33,6 +34,9 @@ namespace Shortly_API.Controllers
         // Endpoint que permite tanto usuarios autenticados como anónimos
         [HttpPost("urls")]
         [AllowAnonymous] // Permite acceso sin autenticación
+        [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ShortUrlResponse>> CreateShortUrl([FromBody] CreateShortUrlRequest request)
         {
             var userId = GetUserIdFromToken();
@@ -56,6 +60,9 @@ namespace Shortly_API.Controllers
         // GET /api/urlshortener/urls
         [HttpGet("urls")]
         [Authorize] // Solo usuarios autenticados pueden ver sus URLs
+        [ProducesResponseType(typeof(List<ShortUrlResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<List<ShortUrlResponse>>> GetUserUrls()
         {
             var userId = GetUserIdFromToken();
@@ -71,6 +78,11 @@ namespace Shortly_API.Controllers
         // GET /api/urlshortener/urls/{shortCode}
         [HttpGet("urls/{shortCode}")]
         [Authorize] // Solo usuarios autenticados pueden ver stats
+        [ProducesResponseType(typeof(ShortUrlStatsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ShortUrlStatsResponse>> GetUrlStats(string shortCode)
         {
             var userId = GetUserIdFromToken();
@@ -86,6 +98,11 @@ namespace Shortly_API.Controllers
         // DELETE /api/urlshortener/urls/{shortCode}
         [HttpDelete("urls/{shortCode}")]
         [Authorize] // Solo usuarios autenticados pueden eliminar URLs
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteShortUrl(string shortCode)
         {
             var userId = GetUserIdFromToken();
