@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Shortly_API.Middleware;
 using Shortly_API.Services;
 
 namespace Shortly_API.Controllers
@@ -18,6 +19,11 @@ namespace Shortly_API.Controllers
 
         // GET /{shortCode}
         [HttpGet("{shortCode}")]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status410Gone)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RedirectToOriginalUrl(string shortCode)
         {
             if (string.IsNullOrWhiteSpace(shortCode))
