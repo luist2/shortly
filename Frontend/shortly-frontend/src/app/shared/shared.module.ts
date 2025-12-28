@@ -15,10 +15,17 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
 
 // Components
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
+import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 
 @NgModule({
-  declarations: [ConfirmDialogComponent],
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  declarations: [ConfirmDialogComponent, LoadingSpinnerComponent],
+  imports: [
+    CommonModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+  ],
   exports: [
     // Angular Common
     CommonModule,
@@ -36,6 +43,7 @@ import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dial
 
     // Componentes compartidos
     ConfirmDialogComponent,
+    LoadingSpinnerComponent,
   ],
 })
 export class SharedModule {}

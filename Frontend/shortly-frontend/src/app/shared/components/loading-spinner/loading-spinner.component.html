@@ -1,0 +1,13 @@
+<div
+  class="loading-spinner-container"
+  [ngClass]="{
+    'layout-centered': layout === 'centered',
+    'layout-inline': layout === 'inline',
+    'layout-overlay': layout === 'overlay'
+  }"
+>
+  <div class="spinner-content">
+    <mat-spinner [diameter]="diameter" [color]="color"> </mat-spinner>
+    <p *ngIf="showMessage" class="spinner-message">{{ message }}</p>
+  </div>
+</div>

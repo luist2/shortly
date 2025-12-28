@@ -4,11 +4,12 @@
     <h1>My URLs</h1>
   </div>
 
-  <!-- Spinner de carga -->
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>Loading your URLs...</p>
-  </div>
+  <!-- Spinner de carga con componente reutilizable -->
+  <app-loading-spinner
+    *ngIf="isLoading"
+    [layout]="'centered'"
+    [message]="'Loading your URLs...'"
+  ></app-loading-spinner>
 
   <!-- Mensaje de error -->
   <mat-card *ngIf="errorMessage && !isLoading" class="error-card">
@@ -125,7 +126,6 @@
     <mat-card-content>
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort class="urls-table">
-          <!-- Columna: Estado -->
           <!-- Columna: Estado -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>

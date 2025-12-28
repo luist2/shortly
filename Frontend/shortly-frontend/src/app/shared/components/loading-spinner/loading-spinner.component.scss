@@ -1,0 +1,47 @@
+.loading-spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .spinner-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .spinner-message {
+    margin: 0;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 16px;
+    text-align: center;
+  }
+}
+
+// Layout: Centrado con padding (para secciones completas)
+.layout-centered {
+  padding: 60px 20px;
+  min-height: 200px;
+}
+
+// Layout: Inline sin padding adicional
+.layout-inline {
+  padding: 20px;
+}
+
+// Layout: Overlay sobre el contenido
+.layout-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 10;
+
+  .spinner-content {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
