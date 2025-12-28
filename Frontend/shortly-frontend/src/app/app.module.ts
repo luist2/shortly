@@ -21,6 +21,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { UrlStatsModule } from './features/url-stats/url-stats.module';
+import { MatListModule } from '@angular/material/list';
 
 @NgModule({
   declarations: [AppComponent],
@@ -43,6 +44,7 @@ import { UrlStatsModule } from './features/url-stats/url-stats.module';
     MatButtonModule,
     MatMenuModule,
     MatDividerModule,
+    MatListModule,
   ],
   providers: [
     {

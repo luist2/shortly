@@ -97,3 +97,37 @@
     padding: 16px;
   }
 }
+
+// Estilos del Sidenav
+.mobile-sidenav {
+  width: 250px;
+
+  mat-nav-list {
+    padding: 8px;
+  }
+
+  a[mat-list-item],
+  button[mat-list-item] {
+    margin: 4px 0;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    &.active {
+      background-color: rgba(63, 81, 181, 0.12);
+      color: #3f51b5;
+
+      mat-icon {
+        color: #3f51b5;
+      }
+    }
+  }
+
+  mat-icon[matListItemIcon] {
+    color: rgba(0, 0, 0, 0.54);
+    margin-right: 16px;
+  }
+}
