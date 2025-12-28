@@ -4,11 +4,12 @@
     <h1>URL Statistics</h1>
   </div>
 
-  <!-- Spinner de carga -->
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner></mat-spinner>
-    <p>Loading statistics...</p>
-  </div>
+  <!-- Spinner de carga con componente reutilizable -->
+  <app-loading-spinner
+    *ngIf="isLoading"
+    [layout]="'centered'"
+    [message]="'Loading statistics...'"
+  ></app-loading-spinner>
 
   <!-- Mensaje de error -->
   <mat-card *ngIf="errorMessage && !isLoading" class="error-card">
