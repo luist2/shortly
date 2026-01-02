@@ -1,0 +1,37 @@
+.confirm-dialog {
+  min-width: 350px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-weight: 500;
+
+    .dialog-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .dialog-message {
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.7);
+
+    .dark-theme & {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  mat-dialog-actions {
+    padding: 16px 0 0 0;
+    gap: 8px;
+
+    button {
+      min-width: 80px;
+    }
+  }
+}
