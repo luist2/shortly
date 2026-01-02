@@ -47,8 +47,8 @@ export class LoginComponent implements OnInit {
         this.isLoading = false;
         this.snackBar.open('Login successful!', 'Close', {
           duration: 3000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top',
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
           panelClass: ['success-snackbar'],
         });
         this.router.navigate(['/dashboard']);
@@ -70,8 +70,8 @@ export class LoginComponent implements OnInit {
 
         this.snackBar.open(errorMessage, 'Close', {
           duration: 5000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top',
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
           panelClass: ['error-snackbar'],
         });
       },
