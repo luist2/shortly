@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using Microsoft.Data.SqlClient;
+using System.Net;
 using System.Text.Json;
 
 namespace Shortly_API.Middleware
@@ -62,6 +63,12 @@ namespace Shortly_API.Middleware
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     response.Message = "Unauthorized access.";
                     response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    break;
+
+                case SqlException:
+                    context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
+                    response.Message = "A database error occurred.";
+                    response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                     break;
 
                 default:
