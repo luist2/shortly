@@ -33,9 +33,8 @@ export class UrlCreateComponent implements OnInit {
         '',
         [
           Validators.required,
-          Validators.pattern(
-            /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/
-          ),
+          Validators.maxLength(2048),
+          Validators.pattern(/^https?:\/\//),
         ],
       ],
     });
