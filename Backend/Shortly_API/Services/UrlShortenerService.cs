@@ -25,6 +25,11 @@ namespace Shortly_API.Services
             {
                 throw new ArgumentException("Short code cannot be null or empty.");
             }
+
+            if (shortCode.Length > ShortCodeGenerator.MaxLength)
+            {
+                throw new ArgumentException($"Short code cannot exceed {ShortCodeGenerator.MaxLength} characters.");
+            }
         }
 
         private void ValidateUserId(Guid userId)

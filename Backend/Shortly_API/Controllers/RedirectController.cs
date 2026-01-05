@@ -26,23 +26,20 @@ namespace Shortly_API.Controllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> RedirectToOriginalUrl(string shortCode)
         {
-            if (string.IsNullOrWhiteSpace(shortCode))
-            {
-                _logger.LogWarning("Invalid short code provided.");
-                return BadRequest(new { message = "Short code cannot be empty." });
-            }
-
             try
             {
                 var originalUrl = await _urlShortenerService.GetOriginalUrlAsync(shortCode);
-                
                 return Redirect(originalUrl);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Invalid short code provided: {Message}", ex.Message);
+                return BadRequest(new { message = ex.Message });
             }
             catch (KeyNotFoundException)
             {
                 _logger.LogWarning("Short URL not found: {ShortCode}", shortCode);
                 return NotFound(new { message = "Short URL not found or inactive." });
-
             }
             catch (InvalidOperationException ex)
             {
