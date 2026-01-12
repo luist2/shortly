@@ -14,14 +14,14 @@ Un acortador de URLs moderno y eficiente construido con .NET y Angular.
 
 ## Stack
 
-**Backend:** .NET 8 • Entity Framework Core • SQL Server • JWT  
+**Backend:** .NET 8 • Entity Framework Core • PostgreSQL • JWT
 **Frontend:** Angular 15
 
 ## Instalación
 
 ### Requisitos
 - .NET 8 SDK
-- SQL Server 2019+
+- PostgreSQL
 
 ### Setup
 
