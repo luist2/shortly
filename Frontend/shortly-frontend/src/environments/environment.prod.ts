@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api-produccion.com/api', // Cambiar esto cuando despliegue
+  apiUrl: 'https://shortly-api-nulu.onrender.com', // Cambiar esto cuando despliegue
   appName: 'Shortly',
   apiVersion: 'v1',
 };
