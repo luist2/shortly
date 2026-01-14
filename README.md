@@ -61,6 +61,7 @@ Accede a `https://localhost:7161/scalar` para revisar la documentación.
 
 ### Frontend (Angular)
 
+```bash
 # Ir al frontend
 cd shortly/Frontend/shortly-frontend
 
@@ -69,6 +70,7 @@ npm install
 
 # Levantar aplicación
 ng serve
+```
 
 La aplicación estará disponible en `http://localhost:4200`
 
