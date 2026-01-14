@@ -26,8 +26,8 @@ Un acortador de URLs moderno y eficiente construido con .NET y Angular.
 
 ## Stack
 
-**Backend:** .NET 8 • Entity Framework Core • PostgreSQL • JWT
-**Frontend:** Angular 15
+- **Backend:** .NET 8 • Entity Framework Core • PostgreSQL • JWT
+- **Frontend:** Angular 15
 
 ## Instalación
 
