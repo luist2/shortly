@@ -5,6 +5,18 @@ Un acortador de URLs moderno y eficiente construido con .NET y Angular.
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Angular](https://img.shields.io/badge/Angular-15-DD0031?logo=angular)](https://angular.io/)
 
+## 🔴 Live Demo
+
+- **Frontend (Angular + Netlify)**  
+  https://shortly-platform.netlify.app
+
+- **Backend API (.NET + Render)**  
+  https://shortly-api-nulu.onrender.com
+
+> La API puede tardar unos segundos en responder la primera vez debido al cold start de Render.
+
+---
+
 ## Características
 
 - Acortamiento de URLs con códigos únicos
