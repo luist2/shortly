@@ -34,13 +34,17 @@ Un acortador de URLs moderno y eficiente construido con .NET y Angular.
 ### Requisitos
 - .NET 8 SDK
 - PostgreSQL
+- Node.js 18+
+- Angular CLI (`npm install -g @angular/cli`)
 
-### Setup
+---
+
+### Backend (.NET)
 
 ```bash
 # Clonar
 git clone https://github.com/luist2/shortly.git
-cd shortly/backend/Shortly_API
+cd shortly/Backend/Shortly_API
 
 # Configurar
 cp appsettings.json appsettings.Development.json
@@ -49,12 +53,25 @@ cp appsettings.json appsettings.Development.json
 # Instalar dependencias
 dotnet restore
 
-# Ejecutar
+# Ejecutar migraciones y levantar API
 dotnet ef database update
 dotnet run
 ```
+Accede a `https://localhost:7161/scalar` para revisar la documentación.
 
-Accede a `https://localhost:7161/scalar` para revisar la documentación
+### Frontend (Angular)
+
+# Ir al frontend
+cd shortly/Frontend/shortly-frontend
+
+# Instalar dependencias
+npm install
+
+# Levantar aplicación
+ng serve
+
+La aplicación estará disponible en `http://localhost:4200`
+
 
 ### Endpoints principales
 
