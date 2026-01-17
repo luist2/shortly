@@ -11,6 +11,7 @@ import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { STORAGE_KEYS } from '../constants/storage-keys.constants';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -72,7 +73,7 @@ export class AuthInterceptor implements HttpInterceptor {
       this.isRefreshing = true;
       this.refreshTokenSubject.next(null);
 
-      const refreshToken = localStorage.getItem('refreshToken');
+      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
       const userId = this.authService.getUserId();
 
       if (refreshToken && userId) {

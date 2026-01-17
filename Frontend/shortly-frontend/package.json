@@ -21,6 +21,7 @@
     "@angular/platform-browser-dynamic": "^15.2.0",
     "@angular/router": "^15.2.0",
     "chart.js": "^3.9.1",
+    "jwt-decode": "^4.0.0",
     "ng2-charts": "^3.1.2",
     "ngx-clipboard": "^16.0.0",
     "rxjs": "~7.8.0",

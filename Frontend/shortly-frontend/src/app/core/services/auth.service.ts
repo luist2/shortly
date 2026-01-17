@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, BehaviorSubject, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { jwtDecode } from 'jwt-decode';
 
-// Importar modelos
+// Importar modelos y constantes
 import { UserDTO, UserResponse } from 'src/app/models/user.model';
 import { TokenResponse, RefreshTokenRequest } from 'src/app/models/auth.model';
+import { STORAGE_KEYS } from '../constants/storage-keys.constants';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +15,22 @@ import { TokenResponse, RefreshTokenRequest } from 'src/app/models/auth.model';
 export class AuthService {
   private readonly apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  // 1. Estado Reactivo
+  private currentUserSubject = new BehaviorSubject<string | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
+  public isLoggedIn$ = this.currentUser$.pipe(map(userId => !!userId));
+
+  constructor(private http: HttpClient) {
+    // Inicializar estado al cargar la app
+    this.initializeState();
+  }
+
+  private initializeState(): void {
+    const userId = this.getUserIdFromStorage();
+    if (userId && this.hasValidToken()) {
+      this.currentUserSubject.next(userId);
+    }
+  }
 
   /**
    * Registra un nuevo usuario en el sistema.
@@ -35,7 +52,7 @@ export class AuthService {
   login(userDTO: UserDTO): Observable<TokenResponse> {
     return this.http
       .post<TokenResponse>(`${this.apiUrl}/Auth/login`, userDTO)
-      .pipe(tap((response) => this.saveTokens(response)));
+      .pipe(tap((response) => this.handleAuthenticationSuccess(response)));
   }
 
   /**
@@ -44,10 +61,11 @@ export class AuthService {
    * @returns Observable con la nueva respuesta de tokens del servidor.
    */
   refreshToken(): Observable<TokenResponse> {
-    const refreshToken = localStorage.getItem('refreshToken');
-    const userId = localStorage.getItem('userId');
+    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
 
     if (!refreshToken || !userId) {
+      this.logout(); // Limpiar estado si faltan datos
       throw new Error('No refresh token or userId found in localStorage');
     }
 
@@ -58,7 +76,7 @@ export class AuthService {
 
     return this.http
       .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-tokens`, body)
-      .pipe(tap((response) => this.saveTokens(response)));
+      .pipe(tap((response) => this.handleAuthenticationSuccess(response)));
   }
 
   /**
@@ -66,57 +84,36 @@ export class AuthService {
    * @returns El token de acceso o null si no existe.
    */
   getToken(): string | null {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   }
 
   /**
    * Retorna true si el usuario está autenticado (es decir, si existe un token de acceso válido).
+   * Es preferible leer directamente del storage para los Guards por si el token fue borrado manualmente.
    */
   isAuthenticated(): boolean {
-    const token = this.getToken();
-    return token !== null && token.trim() !== '';
+    return !!this.getToken();
   }
 
   /**
-   * Obtiene el userId desde el JWT decodificado.
-   * Busca el claim 'nameid' en el payload del token.
+   * Obtiene el userId actual (Snapshot del estado).
    */
   getUserId(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-
-      return (
-        payload['nameid'] ||
-        payload[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
-        ] ||
-        null
-      );
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
-    }
+    return this.currentUserSubject.value;
   }
 
   /**
-   * Obtiene el email del usuario desde el JWT decodificado.
-   * Busca el claim 'email' en el payload del token.
+   * Obtiene el email del usuario desde el JWT decodificado utilizando jwt-decode.
    */
   getUserEmail(): string | null {
     const token = this.getToken();
     if (!token) return null;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-
+      const payload: any = jwtDecode(token);
       return (
-        payload['email'] ||
-        payload[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
-        ] ||
+        payload.email ||
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
         null
       );
     } catch (error) {
@@ -126,34 +123,50 @@ export class AuthService {
   }
 
   /**
-   * Cierra la sesión del usuario eliminando los tokens almacenados.
+   * Cierra la sesión del usuario eliminando los tokens almacenados y limpiando el estado.
    */
   logout(): void {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userId');
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER_ID);
+    this.currentUserSubject.next(null);
+  }
+
+  // --- Private Helpers ---
+
+  private handleAuthenticationSuccess(tokenResponse: TokenResponse): void {
+    this.saveTokens(tokenResponse);
+    
+    // Actualizar estado reactivo
+    const userId = this.extractUserIdFromToken(tokenResponse.accessToken);
+    this.currentUserSubject.next(userId);
   }
 
   private saveTokens(tokenResponse: TokenResponse): void {
-    localStorage.setItem('accessToken', tokenResponse.accessToken);
-    localStorage.setItem('refreshToken', tokenResponse.refreshToken);
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenResponse.accessToken);
+    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenResponse.refreshToken);
 
-    // Extraer userId desde el JWT y guardarlo
     const userId = this.extractUserIdFromToken(tokenResponse.accessToken);
     if (userId) {
-      localStorage.setItem('userId', userId);
+      localStorage.setItem(STORAGE_KEYS.USER_ID, userId);
     }
+  }
+
+  private hasValidToken(): boolean {
+    const token = this.getToken();
+    return token !== null && token.trim() !== '';
+  }
+
+  private getUserIdFromStorage(): string | null {
+    return localStorage.getItem(STORAGE_KEYS.USER_ID);
   }
 
   private extractUserIdFromToken(token: string): string | null {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-
+      const payload: any = jwtDecode(token);
       return (
-        payload['nameid'] ||
-        payload[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
-        ] ||
+        payload.nameid ||
+        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
         null
       );
     } catch (error) {
