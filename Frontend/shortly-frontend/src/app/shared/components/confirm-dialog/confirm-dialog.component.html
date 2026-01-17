@@ -1,20 +1,25 @@
 <div class="confirm-dialog">
-  <!-- Título del diálogo -->
-  <h2 mat-dialog-title>
-    <mat-icon class="dialog-icon">{{
-      data.confirmColor === "warn" ? "warning" : "help_outline"
-    }}</mat-icon>
-    {{ data.title }}
-  </h2>
+  <div class="dialog-header">
+    <div
+      class="icon-wrapper"
+      [ngClass]="{
+        'warn-icon': data.confirmColor === 'warn',
+        'primary-icon': data.confirmColor !== 'warn'
+      }"
+    >
+      <mat-icon>{{
+        data.confirmColor === "warn" ? "warning" : "help"
+      }}</mat-icon>
+    </div>
+    <h2 mat-dialog-title>{{ data.title }}</h2>
+  </div>
 
-  <!-- Contenido del mensaje -->
   <mat-dialog-content>
     <p class="dialog-message">{{ data.message }}</p>
   </mat-dialog-content>
 
-  <!-- Botones de acción -->
   <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()" cdkFocusInitial>
+    <button mat-stroked-button (click)="onCancel()" cdkFocusInitial>
       {{ data.cancelText }}
     </button>
     <button mat-raised-button [color]="data.confirmColor" (click)="onConfirm()">
