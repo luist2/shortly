@@ -3,7 +3,6 @@ import { RouterModule, Routes } from '@angular/router';
 
 // Material Modules
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule } from '@angular/material/dialog';
 
 // Modules
 import { SharedModule } from 'src/app/shared/shared.module';
@@ -27,7 +26,6 @@ const routes: Routes = [
 
     // Material Modules
     MatChipsModule,
-    MatDialogModule,
   ],
 })
 export class UrlStatsModule {}

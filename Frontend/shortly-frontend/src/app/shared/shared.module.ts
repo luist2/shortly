@@ -9,6 +9,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 // CDK
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -25,6 +27,8 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   exports: [
     // Angular Common
@@ -40,6 +44,9 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDialogModule,
 
     // Componentes compartidos
     ConfirmDialogComponent,

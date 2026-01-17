@@ -4,9 +4,6 @@ import { FormsModule } from '@angular/forms';
 
 // Material Modules - Específicos de Dashboard
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -34,9 +31,6 @@ const routes: Routes = [
 
     // Material Modules
     MatChipsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatSortModule,
     MatTableModule,
     MatButtonToggleModule,
