@@ -1,0 +1,57 @@
+// Variables de Breakpoints (Angular Material Standard)
+$xs-max: 599.98px;
+$sm-min: 600px;
+$sm-max: 959.98px;
+$md-min: 960px;
+$md-max: 1279.98px;
+$lg-min: 1280px;
+
+// Mixins para Media Queries
+@mixin xs {
+  @media (max-width: #{$xs-max}) {
+    @content;
+  }
+}
+
+@mixin sm {
+  @media (min-width: #{$sm-min}) and (max-width: #{$sm-max}) {
+    @content;
+  }
+}
+
+@mixin md {
+  @media (min-width: #{$md-min}) and (max-width: #{$md-max}) {
+    @content;
+  }
+}
+
+@mixin lg {
+  @media (min-width: #{$lg-min}) {
+    @content;
+  }
+}
+
+// Rangos compuestos comunes
+@mixin gt-xs {
+  @media (min-width: #{$sm-min}) {
+    @content;
+  }
+}
+
+@mixin lt-md {
+  @media (max-width: #{$sm-max}) {
+    @content;
+  }
+}
+
+@mixin lt-lg {
+  @media (max-width: #{$md-max}) {
+    @content;
+  }
+}
+
+@mixin gt-sm {
+  @media (min-width: #{$md-min}) {
+    @content;
+  }
+}
