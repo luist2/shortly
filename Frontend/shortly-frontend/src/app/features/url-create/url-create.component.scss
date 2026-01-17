@@ -207,17 +207,22 @@
 
     mat-card-header {
       .title {
-        font-size: 28px;
+        font-size: 24px;
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
 
         .title-icon {
-          font-size: 32px;
-          width: 32px;
-          height: 32px;
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+          margin-bottom: 0;
         }
       }
 
       mat-card-subtitle {
         font-size: 14px;
+        margin-top: 4px;
       }
     }
 
