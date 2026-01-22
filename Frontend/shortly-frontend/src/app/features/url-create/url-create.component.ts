@@ -79,6 +79,11 @@ export class UrlCreateComponent implements OnInit {
           this.urlForm.get('originalUrl')?.setErrors({ backend: true });
         }
 
+        // Rate limit excedido (429)
+        else if (error.status === 429 && error.error?.message) {
+          errorMessage = error.error.message;
+        }
+
         // Otros errores (500, 403, etc.)
         else if (error.error?.title) {
           errorMessage = error.error.title;
