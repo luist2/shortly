@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -7,7 +7,9 @@ using Shortly_API.Middleware;
 using Shortly_API.Repositories;
 using Shortly_API.Services;
 using System;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +54,74 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Configurar Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    // Manejo personalizado de rechazos
+    options.OnRejected = async (context, token) =>
+    {
+        var httpContext = context.HttpContext;
+
+        httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        httpContext.Response.ContentType = "application/json";
+
+        var errorResponse = new
+        {
+            statusCode = StatusCodes.Status429TooManyRequests,
+            message = "Too many requests. Please try again later."
+        };
+
+        await httpContext.Response.WriteAsJsonAsync(errorResponse, token);
+    };
+
+    // Política para usuarios autenticados: 100 por hora
+    options.AddPolicy("authenticated", context =>
+    {
+        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!string.IsNullOrEmpty(userId))
+        {
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: userId,
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 100,
+                    Window = TimeSpan.FromHours(1),
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 0
+                });
+        }
+
+        // Si no hay userId, caer a política anónima
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromHours(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+    // Política para usuarios anónimos: 20 por hora (por IP)
+    options.AddPolicy("anonymous", context =>
+    {
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ipAddress,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 20,
+                Window = TimeSpan.FromHours(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+});
+
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHttpClient();
 
@@ -75,7 +145,7 @@ if (app.Environment.IsDevelopment())
     {
         options.RouteTemplate = "openapi/{documentName}.json";
     });
-    app.UseSwaggerUI(); // opcional si quer�s comparar con SwaggerUI
+    app.UseSwaggerUI(); // opcional si querés comparar con SwaggerUI
 
     app.MapScalarApiReference();
 }
@@ -89,6 +159,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 

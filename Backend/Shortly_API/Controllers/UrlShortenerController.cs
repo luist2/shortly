@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Shortly_API.Middleware;
 using Shortly_API.Models.ShortUrlDTOs;
 using Shortly_API.Services;
@@ -34,8 +35,10 @@ namespace Shortly_API.Controllers
         // Endpoint que permite tanto usuarios autenticados como anónimos
         [HttpPost("urls")]
         [AllowAnonymous] // Permite acceso sin autenticación
+        [EnableRateLimiting("authenticated")]
         [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ShortUrlResponse>> CreateShortUrl([FromBody] CreateShortUrlRequest request)
         {
