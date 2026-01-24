@@ -1,4 +1,5 @@
-﻿using Shortly_API.Models.ShortUrlDTOs;
+﻿using Shortly_API.Models;
+using Shortly_API.Models.ShortUrlDTOs;
 
 namespace Shortly_API.Services
 {
@@ -13,7 +14,7 @@ namespace Shortly_API.Services
         // Recupera la URL original asociada con el código corto proporcionado.
         Task<string> GetOriginalUrlAsync(string shortCode);
 
-        Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId);
+        Task<PagedResult<ShortUrlResponse>> GetUserUrlsAsync(Guid userId, int page, int pageSize);
         Task<ShortUrlStatsResponse> GetUrlStatsAsync(string shortCode, Guid userId);
         Task<bool> DeleteShortUrlAsync(string shortCode, Guid userId);
     }

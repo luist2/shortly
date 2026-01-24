@@ -38,13 +38,20 @@ namespace Shortly_API.Repositories
                 .FirstOrDefaultAsync(su => su.ShortCode == shortCode && su.IsActive && !su.IsDeleted);
         }
 
-        public Task<List<ShortUrl>> GetByUserIdAsync(Guid userId)
+        public async Task<(List<ShortUrl> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int page, int pageSize)
         {
-            // Devolver URLs no eliminadas y ordenadas por fecha de creación descendente
-            return _context.ShortUrls
-                .Where(su => su.UserId == userId && !su.IsDeleted)
+            var query = _context.ShortUrls
+                .Where(su => su.UserId == userId && !su.IsDeleted);
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
                 .OrderByDescending(su => su.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return (items, totalCount);
         }
 
         public async Task IncrementClickCountAsync(ShortUrl shortUrl)
