@@ -5,6 +5,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { Router } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatSort } from '@angular/material/sort';
+import { PageEvent } from '@angular/material/paginator';
 
 // Servicios
 import { UrlService } from 'src/app/core/services/url.service';
@@ -56,6 +57,12 @@ export class DashboardComponent implements OnInit {
 
   // Filtro de estado (activo/inactivo)
   statusFilter: UrlStatusFilter = 'all';
+
+  // Paginación
+  totalCount = 0;
+  pageSize = 10;
+  pageIndex = 0;
+  pageSizeOptions = [5, 10, 25, 100];
 
   constructor(
     private urlService: UrlService,
@@ -136,14 +143,29 @@ export class DashboardComponent implements OnInit {
   /**
    * Carga las URLs del usuario desde el backend.
    */
+  /**
+   * Carga las URLs del usuario desde el backend.
+   */
   loadUserUrls(): void {
     this.isLoading = true;
     this.errorMessage = null;
 
-    this.urlService.getUserUrls().subscribe({
-      next: (urls) => {
-        this.allUrls = urls;
-        this.dataSource.data = urls;
+    // MatPaginator usa índice 0, el backend usa índice 1
+    const page = this.pageIndex + 1;
+
+    this.urlService.getUserUrls(page, this.pageSize).subscribe({
+      next: (result) => {
+        this.allUrls = result.items;
+        this.dataSource.data = result.items;
+        this.totalCount = result.totalCount;
+        
+        // Si la página actual está vacía y no es la primera, volver a la anterior
+        if (this.allUrls.length === 0 && this.pageIndex > 0) {
+          this.pageIndex--;
+          this.loadUserUrls();
+          return;
+        }
+
         this.applyFilters();
         this.isLoading = false;
       },
@@ -153,6 +175,15 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  /**
+   * Maneja el cambio de página.
+   */
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadUserUrls();
   }
 
   /**
@@ -291,6 +322,9 @@ export class DashboardComponent implements OnInit {
         );
         this.dataSource.data = this.allUrls;
         this.applyFilters();
+        
+        // Recargar para actualizar el total y la lista
+        this.loadUserUrls();
 
         this.snackBar.open('✓ URL deleted successfully', 'Close', {
           duration: 3000,

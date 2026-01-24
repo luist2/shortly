@@ -232,6 +232,16 @@
           <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
       </div>
+      <mat-paginator
+        [length]="totalCount"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        [pageIndex]="pageIndex"
+        (page)="onPageChange($event)"
+        aria-label="Select page of URLs"
+        showFirstLastButtons
+      >
+      </mat-paginator>
     </mat-card-content>
   </mat-card>
 </div>

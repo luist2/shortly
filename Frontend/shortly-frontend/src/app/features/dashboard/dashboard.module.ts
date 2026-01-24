@@ -7,6 +7,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 // Modules
 import { SharedModule } from 'src/app/shared/shared.module';
@@ -34,6 +35,7 @@ const routes: Routes = [
     MatSortModule,
     MatTableModule,
     MatButtonToggleModule,
+    MatPaginatorModule,
   ],
 })
 export class DashboardModule {}

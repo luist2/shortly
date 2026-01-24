@@ -9,6 +9,7 @@ import {
   ShortUrlResponse,
   ShortUrlStatsResponse,
 } from 'src/app/models/short-url.model';
+import { PagedResult } from 'src/app/models/paged-result.model';
 
 @Injectable({
   providedIn: 'root',
@@ -32,12 +33,23 @@ export class UrlService {
   }
 
   /**
-   * Obtiene todas las URLs acortadas del usuario autenticado.
-   * @returns Observable con un array de URLs acortadas del usuario.
+   * Obtiene todas las URLs acortadas del usuario autenticado con paginación.
+   * @param page - Número de página (comienza en 1).
+   * @param pageSize - Cantidad de elementos por página.
+   * @returns Observable con el resultado paginado de URLs.
    */
-  getUserUrls(): Observable<ShortUrlResponse[]> {
-    return this.http.get<ShortUrlResponse[]>(
-      `${this.apiUrl}/UrlShortener/urls`
+  getUserUrls(
+    page: number = 1,
+    pageSize: number = 10
+  ): Observable<PagedResult<ShortUrlResponse>> {
+    return this.http.get<PagedResult<ShortUrlResponse>>(
+      `${this.apiUrl}/UrlShortener/urls`,
+      {
+        params: {
+          page: page.toString(),
+          pageSize: pageSize.toString(),
+        },
+      }
     );
   }
 
