@@ -37,8 +37,8 @@
     </mat-card-content>
   </mat-card>
 
-  <!-- Controles de búsqueda y filtros (solo si hay URLs) -->
-  <mat-card *ngIf="hasUrls && !isLoading" class="controls-card">
+  <!-- Controles de búsqueda y filtros (solo si hay URLs o hay una búsqueda activa) -->
+  <mat-card *ngIf="(hasUrls || hasActiveSearchFilter) && !isLoading" class="controls-card">
     <mat-card-content>
       <!-- Barra de búsqueda -->
       <div class="search-container">

@@ -40,16 +40,21 @@ export class UrlService {
    */
   getUserUrls(
     page: number = 1,
-    pageSize: number = 10
+    pageSize: number = 10,
+    search?: string
   ): Observable<PagedResult<ShortUrlResponse>> {
+    const params: any = {
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    };
+
+    if (search) {
+      params.search = search;
+    }
+
     return this.http.get<PagedResult<ShortUrlResponse>>(
       `${this.apiUrl}/UrlShortener/urls`,
-      {
-        params: {
-          page: page.toString(),
-          pageSize: pageSize.toString(),
-        },
-      }
+      { params }
     );
   }
 

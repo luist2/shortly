@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
@@ -6,6 +6,8 @@ import { Router } from '@angular/router';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatSort } from '@angular/material/sort';
 import { PageEvent } from '@angular/material/paginator';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 // Servicios
 import { UrlService } from 'src/app/core/services/url.service';
@@ -24,7 +26,7 @@ type UrlStatusFilter = 'all' | 'active' | 'inactive';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort)
   set matSort(sort: MatSort) {
     this.dataSource.sort = sort;
@@ -54,6 +56,8 @@ export class DashboardComponent implements OnInit {
 
   // Control de búsqueda
   searchTerm: string = '';
+  private searchSubject = new Subject<string>();
+  private searchSubscription: Subscription | null = null;
 
   // Filtro de estado (activo/inactivo)
   statusFilter: UrlStatusFilter = 'all';
@@ -73,9 +77,25 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.setupSearch();
     this.loadUserUrls();
     this.setupFilters();
     this.setupSorting();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
+    }
+  }
+
+  private setupSearch(): void {
+    this.searchSubscription = this.searchSubject
+      .pipe(debounceTime(600), distinctUntilChanged())
+      .subscribe((term) => {
+        this.pageIndex = 0; // Reiniciar paginación en nueva búsqueda
+        this.loadUserUrls();
+      });
   }
 
   /**
@@ -99,6 +119,8 @@ export class DashboardComponent implements OnInit {
 
   /**
    * Configura el filtro personalizado para el datasource.
+   * Nota: Ahora solo filtra por estado en el cliente (para la página actual)
+   * ya que la búsqueda se hace en el servidor.
    */
   private setupFilters(): void {
     this.dataSource.filterPredicate = (
@@ -106,43 +128,19 @@ export class DashboardComponent implements OnInit {
       filter: string
     ): boolean => {
       const filterObj = JSON.parse(filter);
-      const searchStr = filterObj.search.toLowerCase();
       const status = filterObj.status;
 
       // Filtro por estado
-      let matchesStatus = true;
       if (status === 'active') {
-        matchesStatus = data.isActive;
+        return data.isActive;
       } else if (status === 'inactive') {
-        matchesStatus = !data.isActive;
+        return !data.isActive;
       }
-
-      // Filtro por búsqueda
-      let matchesSearch = true;
-      if (searchStr) {
-        const matchesShortUrl = data.shortUrl.toLowerCase().includes(searchStr);
-        const matchesOriginalUrl = data.originalUrl
-          .toLowerCase()
-          .includes(searchStr);
-        const matchesShortCode = data.shortCode
-          .toLowerCase()
-          .includes(searchStr);
-        const matchesClicks = data.clickCount.toString().includes(searchStr);
-
-        matchesSearch =
-          matchesShortUrl ||
-          matchesOriginalUrl ||
-          matchesShortCode ||
-          matchesClicks;
-      }
-
-      return matchesStatus && matchesSearch;
+      
+      return true;
     };
   }
 
-  /**
-   * Carga las URLs del usuario desde el backend.
-   */
   /**
    * Carga las URLs del usuario desde el backend.
    */
@@ -153,7 +151,7 @@ export class DashboardComponent implements OnInit {
     // MatPaginator usa índice 0, el backend usa índice 1
     const page = this.pageIndex + 1;
 
-    this.urlService.getUserUrls(page, this.pageSize).subscribe({
+    this.urlService.getUserUrls(page, this.pageSize, this.searchTerm).subscribe({
       next: (result) => {
         this.allUrls = result.items;
         this.dataSource.data = result.items;
@@ -201,7 +199,7 @@ export class DashboardComponent implements OnInit {
    * Aplica el filtro de búsqueda.
    */
   applySearchFilter(): void {
-    this.applyFilters();
+    this.searchSubject.next(this.searchTerm.trim());
   }
 
   /**
@@ -217,7 +215,7 @@ export class DashboardComponent implements OnInit {
    */
   clearSearch(): void {
     this.searchTerm = '';
-    this.applyFilters();
+    this.searchSubject.next('');
   }
 
   /**
@@ -321,7 +319,10 @@ export class DashboardComponent implements OnInit {
           (u) => u.shortCode !== url.shortCode
         );
         this.dataSource.data = this.allUrls;
-        this.applyFilters();
+        // Apply status filter if active
+        if (this.statusFilter !== 'all') {
+             this.applyFilters();
+        }
         
         // Recargar para actualizar el total y la lista
         this.loadUserUrls();
@@ -349,17 +350,29 @@ export class DashboardComponent implements OnInit {
    * Verifica si se debe mostrar el estado vacío.
    */
   get shouldShowEmptyState(): boolean {
-    return !this.isLoading && !this.errorMessage && !this.hasUrls;
+    return !this.isLoading && !this.errorMessage && !this.hasUrls && !this.hasActiveSearchFilter;
   }
 
   /**
    * Verifica si no hay resultados de búsqueda.
    */
   get hasNoSearchResults(): boolean {
-    return (
-      (this.hasActiveSearchFilter || this.statusFilter !== 'all') &&
-      this.hasUrls &&
-      this.filteredResultsCount === 0
-    );
+    const isFiltering = this.hasActiveSearchFilter || this.statusFilter !== 'all';
+    
+    if (!isFiltering) {
+      return false;
+    }
+
+    // Caso 1: Búsqueda activa sin resultados del servidor (hasUrls es false)
+    if (this.hasActiveSearchFilter && !this.hasUrls) {
+      return true;
+    }
+
+    // Caso 2: Hay URLs cargadas pero el filtro de estado las oculta todas
+    if (this.hasUrls && this.filteredResultsCount === 0) {
+      return true;
+    }
+
+    return false;
   }
 }
