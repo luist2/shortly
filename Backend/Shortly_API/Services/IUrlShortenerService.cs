@@ -14,7 +14,7 @@ namespace Shortly_API.Services
         // Recupera la URL original asociada con el código corto proporcionado.
         Task<string> GetOriginalUrlAsync(string shortCode);
 
-        Task<PagedResult<ShortUrlResponse>> GetUserUrlsAsync(Guid userId, int page, int pageSize);
+        Task<PagedResult<ShortUrlResponse>> GetUserUrlsAsync(Guid userId, int page, int pageSize, string? search = null);
         Task<ShortUrlStatsResponse> GetUrlStatsAsync(string shortCode, Guid userId);
         Task<bool> DeleteShortUrlAsync(string shortCode, Guid userId);
     }

@@ -38,10 +38,18 @@ namespace Shortly_API.Repositories
                 .FirstOrDefaultAsync(su => su.ShortCode == shortCode && su.IsActive && !su.IsDeleted);
         }
 
-        public async Task<(List<ShortUrl> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int page, int pageSize)
+        public async Task<(List<ShortUrl> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int page, int pageSize, string? search = null)
         {
             var query = _context.ShortUrls
                 .Where(su => su.UserId == userId && !su.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.ToLower();
+                query = query.Where(su => 
+                    su.OriginalUrl.ToLower().Contains(lowerSearch) || 
+                    su.ShortCode.ToLower().Contains(lowerSearch));
+            }
 
             var totalCount = await query.CountAsync();
 

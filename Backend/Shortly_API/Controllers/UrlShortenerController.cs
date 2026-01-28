@@ -64,7 +64,7 @@ namespace Shortly_API.Controllers
         [ProducesResponseType(typeof(PagedResult<ShortUrlResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PagedResult<ShortUrlResponse>>> GetUserUrls([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedResult<ShortUrlResponse>>> GetUserUrls([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null)
         {
             var userId = GetUserIdFromToken();
             if (!userId.HasValue)
@@ -76,7 +76,7 @@ namespace Shortly_API.Controllers
             if (pageSize < 1) pageSize = 10;
             if (pageSize > 50) pageSize = 50; // Limitar tamaño máximo de página
 
-            var urls = await _urlShortenerService.GetUserUrlsAsync(userId.Value, page, pageSize);
+            var urls = await _urlShortenerService.GetUserUrlsAsync(userId.Value, page, pageSize, search);
             return Ok(urls);
         }
 
