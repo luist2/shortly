@@ -74,15 +74,15 @@
         >
           <mat-button-toggle value="all">
             <mat-icon>link</mat-icon>
-            All ({{ allUrls.length }})
+            All ({{ currentPageUrls.length }})
           </mat-button-toggle>
           <mat-button-toggle value="active">
             <mat-icon>check_circle</mat-icon>
-            Active ({{ activeUrlsCount }})
+            Active ({{ activeUrlsOnPageCount }})
           </mat-button-toggle>
           <mat-button-toggle value="inactive">
             <mat-icon>cancel</mat-icon>
-            Inactive ({{ inactiveUrlsCount }})
+            Inactive ({{ inactiveUrlsOnPageCount }})
           </mat-button-toggle>
         </mat-button-toggle-group>
       </div>

@@ -45,8 +45,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Datos de la tabla unificada
   dataSource = new MatTableDataSource<ShortUrlResponse>([]);
 
-  // Todas las URLs sin filtrar
-  allUrls: ShortUrlResponse[] = [];
+  // URLs cargadas para la página actual
+  currentPageUrls: ShortUrlResponse[] = [];
 
   // Estado de carga
   isLoading = false;
@@ -153,12 +153,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.urlService.getUserUrls(page, this.pageSize, this.searchTerm).subscribe({
       next: (result) => {
-        this.allUrls = result.items;
+        this.currentPageUrls = result.items;
         this.dataSource.data = result.items;
         this.totalCount = result.totalCount;
         
         // Si la página actual está vacía y no es la primera, volver a la anterior
-        if (this.allUrls.length === 0 && this.pageIndex > 0) {
+        if (this.currentPageUrls.length === 0 && this.pageIndex > 0) {
           this.pageIndex--;
           this.loadUserUrls();
           return;
@@ -233,24 +233,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Obtiene el conteo de URLs activas.
+   * Obtiene el conteo de URLs activas en la página actual.
    */
-  get activeUrlsCount(): number {
-    return this.allUrls.filter((url) => url.isActive).length;
+  get activeUrlsOnPageCount(): number {
+    return this.currentPageUrls.filter((url) => url.isActive).length;
   }
 
   /**
-   * Obtiene el conteo de URLs inactivas.
+   * Obtiene el conteo de URLs inactivas en la página actual.
    */
-  get inactiveUrlsCount(): number {
-    return this.allUrls.filter((url) => !url.isActive).length;
+  get inactiveUrlsOnPageCount(): number {
+    return this.currentPageUrls.filter((url) => !url.isActive).length;
   }
 
   /**
-   * Verifica si hay URLs en total.
+   * Verifica si hay URLs en la página actual.
    */
   get hasUrls(): boolean {
-    return this.allUrls.length > 0;
+    return this.currentPageUrls.length > 0;
   }
 
   /**
@@ -314,11 +314,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private performDelete(url: ShortUrlResponse): void {
     this.urlService.deleteUrl(url.shortCode).subscribe({
       next: () => {
-        // Eliminar de ambas listas
-        this.allUrls = this.allUrls.filter(
+        // Eliminar de las listas locales
+        this.currentPageUrls = this.currentPageUrls.filter(
           (u) => u.shortCode !== url.shortCode
         );
-        this.dataSource.data = this.allUrls;
+        this.dataSource.data = this.currentPageUrls;
         // Apply status filter if active
         if (this.statusFilter !== 'all') {
              this.applyFilters();
