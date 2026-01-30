@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // Importar modelos
@@ -43,13 +43,12 @@ export class UrlService {
     pageSize: number = 10,
     search?: string
   ): Observable<PagedResult<ShortUrlResponse>> {
-    const params: any = {
-      page: page.toString(),
-      pageSize: pageSize.toString(),
-    };
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
 
     if (search) {
-      params.search = search;
+      params = params.set('search', search);
     }
 
     return this.http.get<PagedResult<ShortUrlResponse>>(

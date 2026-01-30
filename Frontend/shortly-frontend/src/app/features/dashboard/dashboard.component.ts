@@ -112,7 +112,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         case 'status':
           return item.isActive ? 0 : 1; // Activos primero
         default:
-          return (item as any)[property];
+          return item[property as keyof ShortUrlResponse] as string | number;
       }
     };
   }
