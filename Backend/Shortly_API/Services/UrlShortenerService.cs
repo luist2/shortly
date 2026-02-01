@@ -253,12 +253,12 @@ namespace Shortly_API.Services
             return response;
         }
 
-        public async Task<PagedResult<ShortUrlResponse>> GetUserUrlsAsync(Guid userId, int page, int pageSize, string? search = null)
+        public async Task<PagedResult<ShortUrlResponse>> GetUserUrlsAsync(Guid userId, int page, int pageSize, string? search = null, string? sortBy = null, string? sortDirection = null, string? status = null)
         {
             ValidateUserId(userId);
 
             var baseDomain = _config["AppSettings:BaseDomain"];
-            var (shortUrls, totalCount) = await _repository.GetByUserIdAsync(userId, page, pageSize, search);
+            var (shortUrls, totalCount) = await _repository.GetByUserIdAsync(userId, page, pageSize, search, sortBy, sortDirection, status);
 
             var items = shortUrls.Select(su => new ShortUrlResponse
             {

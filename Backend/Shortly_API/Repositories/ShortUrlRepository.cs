@@ -38,7 +38,7 @@ namespace Shortly_API.Repositories
                 .FirstOrDefaultAsync(su => su.ShortCode == shortCode && su.IsActive && !su.IsDeleted);
         }
 
-        public async Task<(List<ShortUrl> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int page, int pageSize, string? search = null)
+        public async Task<(List<ShortUrl> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int page, int pageSize, string? search = null, string? sortBy = null, string? sortDirection = null, string? status = null)
         {
             var query = _context.ShortUrls
                 .Where(su => su.UserId == userId && !su.IsDeleted);
@@ -51,15 +51,44 @@ namespace Shortly_API.Repositories
                     su.ShortCode.ToLower().Contains(lowerSearch));
             }
 
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                var lowerStatus = status.ToLower();
+                if (lowerStatus == "active")
+                {
+                    query = query.Where(su => su.IsActive);
+                }
+                else if (lowerStatus == "inactive")
+                {
+                    query = query.Where(su => !su.IsActive);
+                }
+            }
+
             var totalCount = await query.CountAsync();
 
+            query = ApplySorting(query, sortBy, sortDirection);
+
             var items = await query
-                .OrderByDescending(su => su.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
             return (items, totalCount);
+        }
+
+        private IQueryable<ShortUrl> ApplySorting(IQueryable<ShortUrl> query, string? sortBy, string? sortDirection)
+        {
+            var isAsc = sortDirection?.ToLower() == "asc";
+
+            return sortBy?.ToLower() switch
+            {
+                "originalurl" => isAsc ? query.OrderBy(u => u.OriginalUrl) : query.OrderByDescending(u => u.OriginalUrl),
+                "shorturl" or "shortcode" => isAsc ? query.OrderBy(u => u.ShortCode) : query.OrderByDescending(u => u.ShortCode),
+                "clickcount" => isAsc ? query.OrderBy(u => u.ClickCount) : query.OrderByDescending(u => u.ClickCount),
+                "createdat" => isAsc ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
+                "status" => isAsc ? query.OrderBy(u => u.IsActive) : query.OrderByDescending(u => u.IsActive),
+                _ => query.OrderByDescending(u => u.CreatedAt) // Default sorting
+            };
         }
 
         public async Task IncrementClickCountAsync(ShortUrl shortUrl)
