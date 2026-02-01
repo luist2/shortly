@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
@@ -26,13 +26,12 @@ type UrlStatusFilter = 'all' | 'active' | 'inactive';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   // @ViewChild(MatSort) sort!: MatSort;
   private _sort!: MatSort;
   
   @ViewChild(MatSort) set sort(sort: MatSort) {
       this._sort = sort;
-      // this.dataSource.sort = this.sort; // Eliminar para evitar ordenamiento local
       
       if (this.sort) {
         if (this.sortSubscription) {
@@ -98,11 +97,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnInit(): void {
     this.setupSearch();
     this.loadUserUrls();
-    this.setupFilters();
-  }
-
-  ngAfterViewInit(): void {
-    // La suscripción al sort se maneja en el setter
   }
 
   ngOnDestroy(): void {
@@ -124,15 +118,6 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   /**
-   * Configura el filtro personalizado para el datasource.
-   * Nota: Ahora solo filtra por estado en el cliente (para la página actual)
-   * ya que la búsqueda se hace en el servidor.
-   */
-  private setupFilters(): void {
-    // Client-side filtering removed in favor of server-side filtering
-  }
-
-  /**
    * Carga las URLs del usuario desde el backend.
    */
   loadUserUrls(): void {
@@ -142,7 +127,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     // MatPaginator usa índice 0, el backend usa índice 1
     const page = this.pageIndex + 1;
 
-    // Sorting parameters
+    // Parámetros de ordenamiento
     const sortBy = this.sort?.active;
     const sortDirection = this.sort?.direction || '';
 
@@ -299,7 +284,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
           (u) => u.shortCode !== url.shortCode
         );
         this.dataSource.data = this.currentPageUrls;
-        // Apply status filter if active
+        // Aplicar filtro de estado si está activo
         if (this.statusFilter !== 'all') {
              this.loadUserUrls();
         }
