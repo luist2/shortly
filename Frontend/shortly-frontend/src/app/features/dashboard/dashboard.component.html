@@ -68,10 +68,7 @@
       <!-- Filtros y Resultados -->
       <div class="filters-section">
         <!-- Contador de resultados (texto sutil) -->
-        <span
-          class="results-text"
-          *ngIf="hasActiveSearchFilter || statusFilter !== 'all'"
-        >
+        <span class="results-text">
           <strong>{{ totalCount }}</strong> result{{ totalCount !== 1 ? "s" : "" }}
         </span>
 
