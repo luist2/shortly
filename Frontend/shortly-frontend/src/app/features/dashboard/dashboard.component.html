@@ -38,7 +38,7 @@
   </mat-card>
 
   <!-- Controles de búsqueda y filtros (solo si hay URLs o hay una búsqueda activa) -->
-  <mat-card *ngIf="(hasUrls || hasActiveSearchFilter)" class="controls-card">
+  <mat-card *ngIf="hasUrls || isFiltering" class="controls-card">
     <mat-card-content>
       <!-- Barra de búsqueda -->
       <div class="search-container">
@@ -111,7 +111,7 @@
       <p>Try adjusting your search term or filters</p>
       <button
         mat-stroked-button
-        (click)="clearSearch(); changeStatusFilter('all')"
+        (click)="resetFilters()"
       >
         Clear All Filters
       </button>

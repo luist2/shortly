@@ -196,6 +196,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Reinicia todos los filtros a sus valores por defecto.
+   */
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = 'all';
+    this.pageIndex = 0;
+    this.loadUserUrls();
+  }
+
+  /**
    * Verifica si hay un filtro de búsqueda activo.
    */
   get hasActiveSearchFilter(): boolean {
@@ -315,29 +325,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
    * Verifica si se debe mostrar el estado vacío.
    */
   get shouldShowEmptyState(): boolean {
-    return !this.isLoading && !this.errorMessage && !this.hasUrls && !this.hasActiveSearchFilter;
+    return !this.isLoading && !this.errorMessage && !this.hasUrls && !this.hasActiveSearchFilter && this.statusFilter === 'all';
   }
 
   /**
    * Verifica si no hay resultados de búsqueda.
    */
+  /**
+   * Verifica si hay no hay resultados dadas las condiciones actuales (filtros).
+   */
   get hasNoSearchResults(): boolean {
-    const isFiltering = this.hasActiveSearchFilter || this.statusFilter !== 'all';
-    
-    if (!isFiltering) {
+    if (!this.isFiltering) {
       return false;
     }
 
-    // Caso 1: Búsqueda activa sin resultados del servidor (hasUrls es false)
-    if (this.hasActiveSearchFilter && !this.hasUrls) {
-      return true;
-    }
+    // Si no hay URLs cargadas y estamos filtrando, significa que el filtro no devolvió resultados
+    return !this.hasUrls;
+  }
 
-    // Caso 2: Hay URLs cargadas pero el filtro de estado las oculta todas
-    if (this.hasUrls && this.filteredResultsCount === 0) {
-      return true;
-    }
-
-    return false;
+  /**
+   * Verifica si hay algún filtro aplicado (búsqueda o estado).
+   */
+  get isFiltering(): boolean {
+    return this.hasActiveSearchFilter || this.statusFilter !== 'all';
   }
 }
