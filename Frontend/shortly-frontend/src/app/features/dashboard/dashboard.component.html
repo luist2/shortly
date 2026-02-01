@@ -39,10 +39,10 @@
 
   <!-- Controles de búsqueda y filtros (solo si hay URLs o hay una búsqueda activa) -->
   <mat-card *ngIf="hasUrls || isFiltering" class="controls-card">
-    <mat-card-content>
+    <mat-card-content class="controls-content">
       <!-- Barra de búsqueda -->
-      <div class="search-container">
-        <mat-form-field appearance="outline" class="search-field">
+      <div class="search-section">
+        <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
           <mat-label>Search URLs</mat-label>
           <input
             matInput
@@ -65,40 +65,28 @@
         </mat-form-field>
       </div>
 
-      <!-- Filtros de estado con toggle buttons -->
-      <div class="status-filters">
-        <mat-button-toggle-group
-          [value]="statusFilter"
-          (change)="changeStatusFilter($event.value)"
-          aria-label="URL Status Filter"
+      <!-- Filtros y Resultados -->
+      <div class="filters-section">
+        <!-- Contador de resultados (texto sutil) -->
+        <span
+          class="results-text"
+          *ngIf="hasActiveSearchFilter || statusFilter !== 'all'"
         >
-          <mat-button-toggle value="all">
-            <mat-icon>link</mat-icon>
-            All
-          </mat-button-toggle>
-          <mat-button-toggle value="active">
-            <mat-icon>check_circle</mat-icon>
-            Active
-          </mat-button-toggle>
-          <mat-button-toggle value="inactive">
-            <mat-icon>cancel</mat-icon>
-            Inactive
-          </mat-button-toggle>
-        </mat-button-toggle-group>
-      </div>
+          <strong>{{ totalCount }}</strong> result{{ totalCount !== 1 ? "s" : "" }}
+        </span>
 
-      <!-- Contador de resultados -->
-      <div
-        class="results-info"
-        *ngIf="hasActiveSearchFilter || statusFilter !== 'all'"
-      >
-        <mat-chip>
-          {{ totalCount }} result<span
-            *ngIf="totalCount !== 1"
-            >s</span
+        <!-- Filtros de estado -->
+        <div class="status-filters">
+          <mat-button-toggle-group
+            [value]="statusFilter"
+            (change)="changeStatusFilter($event.value)"
+            aria-label="URL Status Filter"
           >
-          found
-        </mat-chip>
+            <mat-button-toggle value="all"> All </mat-button-toggle>
+            <mat-button-toggle value="active"> Active </mat-button-toggle>
+            <mat-button-toggle value="inactive"> Inactive </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>

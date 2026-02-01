@@ -70,75 +70,75 @@
 .controls-card {
   margin-bottom: 16px;
 
-  .mat-card-content {
+  .controls-content {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
     gap: 16px;
+    padding: 16px;
   }
 
-  .search-container {
+  // Sección Izquierda: Búsqueda
+  .search-section {
+    flex: 1;
+    min-width: 300px;
+    max-width: 500px; // Prevent annoying resizing when right content changes
+
+    .search-field {
+      width: 100%;
+      margin: 0;
+      
+      // Ajuste para que se vea más compacta si se desea, o dejar default
+      .mat-mdc-text-field-wrapper {
+          padding-bottom: 0;
+      }
+    }
+  }
+
+  // Sección Derecha: Filtros y Resultado
+  .filters-section {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
+    justify-content: flex-end;
 
-    .search-field {
-      flex: 1;
-      min-width: 300px;
-      margin: 0;
-    }
-  }
-
-  // Toggle buttons de estado
-  .status-filters {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    mat-button-toggle-group {
-      box-shadow: none;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      border-radius: 20px;
-      overflow: hidden;
+    // Texto de resultados
+    .results-text {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
+        white-space: nowrap;
+        
+        strong {
+            color: #1976d2;
+            font-weight: 600;
+        }
     }
 
-    mat-button-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      font-size: 13px;
-      font-weight: 500;
-      border: none;
-
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+    // Toggle buttons de estado
+    .status-filters {
+      mat-button-toggle-group {
+        box-shadow: none;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 20px;
+        overflow: hidden;
+        height: 36px; // Un poco más compactos
+        align-items: center;
       }
-    }
 
-    // Estilos para el toggle seleccionado
-    .mat-button-toggle-checked {
-      background-color: #1976d2;
-      color: white;
+      mat-button-toggle {
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        padding: 0 16px;
+      }
 
-      mat-icon {
+      // Estilos para el toggle seleccionado
+      .mat-button-toggle-checked {
+        background-color: #1976d2;
         color: white;
       }
-    }
-  }
-
-  .results-info {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    mat-chip {
-      background-color: #e3f2fd;
-      color: #1976d2;
-      font-weight: 500;
-      font-size: 14px;
     }
   }
 }
@@ -310,30 +310,32 @@
     font-size: 24px;
   }
 
+  // Ajustes de responsividad específicos para los nuevos controles
   .controls-card {
-    .search-container {
+    .controls-content {
       flex-direction: column;
       align-items: stretch;
+    }
 
-      .search-field {
-        width: 100%;
+    .search-section {
         min-width: 100%;
-      }
     }
 
-    .status-filters {
-      mat-button-toggle-group {
+    .filters-section {
         width: 100%;
-      }
-
-      mat-button-toggle {
-        flex: 1;
-        justify-content: center;
-      }
-    }
-
-    .results-info {
-      justify-content: center;
+        justify-content: space-between; // Separar texto de resultado y filtros
+        
+        .status-filters {
+            // Permitir que el grupo de filtros se encoja si es necesario o scroll
+             mat-button-toggle-group {
+                width: 100%;
+                display: flex;
+                
+                mat-button-toggle {
+                    flex: 1; 
+                }
+             }
+        }
     }
   }
 
@@ -350,15 +352,10 @@
   }
 
   .controls-card {
-    .status-filters {
-      mat-button-toggle-group {
-        display: flex;
-        flex-direction: column;
-      }
-
-      mat-button-toggle {
-        width: 100%;
-      }
+    .filters-section {
+        flex-direction: column-reverse; // Poner resultados abajo de filtros en muy pequeño
+        align-items: center;
+        gap: 12px;
     }
   }
 
