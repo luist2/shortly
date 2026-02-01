@@ -38,7 +38,7 @@
   </mat-card>
 
   <!-- Controles de búsqueda y filtros (solo si hay URLs o hay una búsqueda activa) -->
-  <mat-card *ngIf="(hasUrls || hasActiveSearchFilter) && !isLoading" class="controls-card">
+  <mat-card *ngIf="(hasUrls || hasActiveSearchFilter)" class="controls-card">
     <mat-card-content>
       <!-- Barra de búsqueda -->
       <div class="search-container">
@@ -74,15 +74,15 @@
         >
           <mat-button-toggle value="all">
             <mat-icon>link</mat-icon>
-            All ({{ currentPageUrls.length }})
+            All
           </mat-button-toggle>
           <mat-button-toggle value="active">
             <mat-icon>check_circle</mat-icon>
-            Active ({{ activeUrlsOnPageCount }})
+            Active
           </mat-button-toggle>
           <mat-button-toggle value="inactive">
             <mat-icon>cancel</mat-icon>
-            Inactive ({{ inactiveUrlsOnPageCount }})
+            Inactive
           </mat-button-toggle>
         </mat-button-toggle-group>
       </div>
@@ -120,7 +120,7 @@
 
   <!-- Tabla unificada de URLs -->
   <mat-card
-    *ngIf="hasUrls && !isLoading && !hasNoSearchResults"
+    *ngIf="hasUrls && !hasNoSearchResults"
     class="table-card"
   >
     <mat-card-content>
@@ -128,7 +128,7 @@
         <table mat-table [dataSource]="dataSource" matSort class="urls-table">
           <!-- Columna: Estado -->
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+            <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let url">
               <span
                 class="status-dot"

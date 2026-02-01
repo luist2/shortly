@@ -41,7 +41,10 @@ export class UrlService {
   getUserUrls(
     page: number = 1,
     pageSize: number = 10,
-    search?: string
+    search?: string,
+    sortBy?: string,
+    sortDirection?: string,
+    status?: string
   ): Observable<PagedResult<ShortUrlResponse>> {
     let params = new HttpParams()
       .set('page', page.toString())
@@ -49,6 +52,18 @@ export class UrlService {
 
     if (search) {
       params = params.set('search', search);
+    }
+    
+    if (sortBy) {
+        params = params.set('sortBy', sortBy);
+    }
+
+    if (sortDirection) {
+        params = params.set('sortDirection', sortDirection);
+    }
+
+    if (status && status !== 'all') {
+        params = params.set('status', status);
     }
 
     return this.http.get<PagedResult<ShortUrlResponse>>(

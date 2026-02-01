@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, AfterViewInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
@@ -26,12 +26,30 @@ type UrlStatusFilter = 'all' | 'active' | 'inactive';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit, OnDestroy {
-  @ViewChild(MatSort)
-  set matSort(sort: MatSort) {
-    this.dataSource.sort = sort;
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
+  // @ViewChild(MatSort) sort!: MatSort;
+  private _sort!: MatSort;
+  
+  @ViewChild(MatSort) set sort(sort: MatSort) {
+      this._sort = sort;
+      // this.dataSource.sort = this.sort; // Eliminar para evitar ordenamiento local
+      
+      if (this.sort) {
+        if (this.sortSubscription) {
+          this.sortSubscription.unsubscribe();
+        }
+        
+        this.sortSubscription = this.sort.sortChange.subscribe(() => {
+          this.pageIndex = 0;
+          this.loadUserUrls();
+        });
+      }
   }
 
+  get sort(): MatSort {
+      return this._sort;
+  }
+  
   // Columnas de la tabla
   displayedColumns: string[] = [
     'status',
@@ -58,6 +76,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   searchTerm: string = '';
   private searchSubject = new Subject<string>();
   private searchSubscription: Subscription | null = null;
+  private sortSubscription: Subscription | null = null;
 
   // Filtro de estado (activo/inactivo)
   statusFilter: UrlStatusFilter = 'all';
@@ -80,12 +99,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.setupSearch();
     this.loadUserUrls();
     this.setupFilters();
-    this.setupSorting();
+  }
+
+  ngAfterViewInit(): void {
+    // La suscripción al sort se maneja en el setter
   }
 
   ngOnDestroy(): void {
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
+    }
+    if (this.sortSubscription) {
+      this.sortSubscription.unsubscribe();
     }
   }
 
@@ -99,46 +124,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Configura el sorting para el datasource.
-   */
-  private setupSorting(): void {
-    this.dataSource.sortingDataAccessor = (
-      item: ShortUrlResponse,
-      property: string
-    ) => {
-      switch (property) {
-        case 'createdAt':
-          return new Date(item.createdAt).getTime();
-        case 'status':
-          return item.isActive ? 0 : 1; // Activos primero
-        default:
-          return item[property as keyof ShortUrlResponse] as string | number;
-      }
-    };
-  }
-
-  /**
    * Configura el filtro personalizado para el datasource.
    * Nota: Ahora solo filtra por estado en el cliente (para la página actual)
    * ya que la búsqueda se hace en el servidor.
    */
   private setupFilters(): void {
-    this.dataSource.filterPredicate = (
-      data: ShortUrlResponse,
-      filter: string
-    ): boolean => {
-      const filterObj = JSON.parse(filter);
-      const status = filterObj.status;
-
-      // Filtro por estado
-      if (status === 'active') {
-        return data.isActive;
-      } else if (status === 'inactive') {
-        return !data.isActive;
-      }
-      
-      return true;
-    };
+    // Client-side filtering removed in favor of server-side filtering
   }
 
   /**
@@ -151,7 +142,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // MatPaginator usa índice 0, el backend usa índice 1
     const page = this.pageIndex + 1;
 
-    this.urlService.getUserUrls(page, this.pageSize, this.searchTerm).subscribe({
+    // Sorting parameters
+    const sortBy = this.sort?.active;
+    const sortDirection = this.sort?.direction || '';
+
+    this.urlService.getUserUrls(page, this.pageSize, this.searchTerm, sortBy, sortDirection, this.statusFilter).subscribe({
       next: (result) => {
         this.currentPageUrls = result.items;
         this.dataSource.data = result.items;
@@ -164,7 +159,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
           return;
         }
 
-        this.applyFilters();
+        // this.applyFilters(); // Ya no es necesario aplicar filtros locales
         this.isLoading = false;
       },
       error: (error) => {
@@ -188,11 +183,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
    * Aplica todos los filtros combinados.
    */
   private applyFilters(): void {
-    const filterValue = JSON.stringify({
-      search: this.searchTerm.trim().toLowerCase(),
-      status: this.statusFilter,
-    });
-    this.dataSource.filter = filterValue;
+    this.pageIndex = 0;
+    this.loadUserUrls();
   }
 
   /**
@@ -229,22 +221,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
    * Obtiene el conteo de resultados filtrados.
    */
   get filteredResultsCount(): number {
-    return this.dataSource.filteredData.length;
+    return this.totalCount;
   }
 
-  /**
-   * Obtiene el conteo de URLs activas en la página actual.
-   */
-  get activeUrlsOnPageCount(): number {
-    return this.currentPageUrls.filter((url) => url.isActive).length;
-  }
 
-  /**
-   * Obtiene el conteo de URLs inactivas en la página actual.
-   */
-  get inactiveUrlsOnPageCount(): number {
-    return this.currentPageUrls.filter((url) => !url.isActive).length;
-  }
 
   /**
    * Verifica si hay URLs en la página actual.
@@ -321,7 +301,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.dataSource.data = this.currentPageUrls;
         // Apply status filter if active
         if (this.statusFilter !== 'all') {
-             this.applyFilters();
+             this.loadUserUrls();
         }
         
         // Recargar para actualizar el total y la lista
