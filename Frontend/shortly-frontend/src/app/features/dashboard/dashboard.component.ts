@@ -27,7 +27,6 @@ type UrlStatusFilter = 'all' | 'active' | 'inactive';
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  // @ViewChild(MatSort) sort!: MatSort;
   private _sort!: MatSort;
   
   @ViewChild(MatSort) set sort(sort: MatSort) {
@@ -144,7 +143,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
           return;
         }
 
-        // this.applyFilters(); // Ya no es necesario aplicar filtros locales
         this.isLoading = false;
       },
       error: (error) => {
@@ -211,15 +209,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   get hasActiveSearchFilter(): boolean {
     return this.searchTerm.trim().length > 0;
   }
-
-  /**
-   * Obtiene el conteo de resultados filtrados.
-   */
-  get filteredResultsCount(): number {
-    return this.totalCount;
-  }
-
-
 
   /**
    * Verifica si hay URLs en la página actual.
@@ -289,16 +278,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private performDelete(url: ShortUrlResponse): void {
     this.urlService.deleteUrl(url.shortCode).subscribe({
       next: () => {
-        // Eliminar de las listas locales
-        this.currentPageUrls = this.currentPageUrls.filter(
-          (u) => u.shortCode !== url.shortCode
-        );
-        this.dataSource.data = this.currentPageUrls;
-        // Aplicar filtro de estado si está activo
-        if (this.statusFilter !== 'all') {
-             this.loadUserUrls();
-        }
-        
         // Recargar para actualizar el total y la lista
         this.loadUserUrls();
 
@@ -329,10 +308,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Verifica si no hay resultados de búsqueda.
-   */
-  /**
-   * Verifica si hay no hay resultados dadas las condiciones actuales (filtros).
+   * Verifica si no hay resultados dadas las condiciones actuales (filtros).
    */
   get hasNoSearchResults(): boolean {
     if (!this.isFiltering) {

@@ -93,8 +93,8 @@
         *ngIf="hasActiveSearchFilter || statusFilter !== 'all'"
       >
         <mat-chip>
-          {{ filteredResultsCount }} result<span
-            *ngIf="filteredResultsCount !== 1"
+          {{ totalCount }} result<span
+            *ngIf="totalCount !== 1"
             >s</span
           >
           found
