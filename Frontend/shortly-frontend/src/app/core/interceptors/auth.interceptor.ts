@@ -12,20 +12,21 @@ import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { STORAGE_KEYS } from '../constants/storage-keys.constants';
+import { TokenResponse } from 'src/app/models/auth.model';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
-  private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(
+  private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(
     null
   );
 
   constructor(private authService: AuthService, private router: Router) {}
 
   intercept(
-    req: HttpRequest<any>,
+    req: HttpRequest<unknown>,
     next: HttpHandler
-  ): Observable<HttpEvent<any>> {
+  ): Observable<HttpEvent<unknown>> {
     // No agregar token a las peticiones de autenticación
     if (this.isAuthRequest(req)) {
       return next.handle(req);
@@ -78,7 +79,7 @@ export class AuthInterceptor implements HttpInterceptor {
 
       if (refreshToken && userId) {
         return this.authService.refreshToken().pipe(
-          switchMap((tokenResponse: any) => {
+          switchMap((tokenResponse: TokenResponse) => {
             this.isRefreshing = false;
             this.refreshTokenSubject.next(tokenResponse.accessToken);
             return next.handle(
@@ -101,12 +102,12 @@ export class AuthInterceptor implements HttpInterceptor {
     } else {
       // Si ya se está refrescando el token, esperar hasta que se complete
       return this.refreshTokenSubject.pipe(
-        filter((token) => token != null),
-        take(1),
-        switchMap((token) => {
-          return next.handle(this.addToken(request, token));
-        })
-      );
+  filter((token): token is string => token != null),
+  take(1),
+  switchMap((token) => {
+    return next.handle(this.addToken(request, token));
+  })
+);
     }
   }
 }

@@ -1,4 +1,5 @@
 ﻿using Shortly_API.Entities;
+using Shortly_API.Models;
 using Shortly_API.Models.ShortUrlDTOs;
 using Shortly_API.Repositories;
 using Shortly_API.Utils;
@@ -252,14 +253,14 @@ namespace Shortly_API.Services
             return response;
         }
 
-        public async Task<List<ShortUrlResponse>> GetUserUrlsAsync(Guid userId)
+        public async Task<PagedResult<ShortUrlResponse>> GetUserUrlsAsync(Guid userId, int page, int pageSize, string? search = null, string? sortBy = null, string? sortDirection = null, string? status = null)
         {
             ValidateUserId(userId);
 
             var baseDomain = _config["AppSettings:BaseDomain"];
-            var shortUrls = await _repository.GetByUserIdAsync(userId);
+            var (shortUrls, totalCount) = await _repository.GetByUserIdAsync(userId, page, pageSize, search, sortBy, sortDirection, status);
 
-            var response = shortUrls.Select(su => new ShortUrlResponse
+            var items = shortUrls.Select(su => new ShortUrlResponse
             {
                 ShortCode = su.ShortCode,
                 OriginalUrl = su.OriginalUrl,
@@ -268,10 +269,10 @@ namespace Shortly_API.Services
                 ClickCount = su.ClickCount,
                 IsActive = su.IsActive
             }).ToList();
+            
+            _logger.LogInformation("User {UserId} retrieved {Count} short URLs (Page {Page}).", userId, items.Count, page);
 
-            _logger.LogInformation("User {UserId} retrieved {Count} short URLs.", userId, response.Count);
-
-            return response;
+            return new PagedResult<ShortUrlResponse>(items, totalCount, page, pageSize);
         }
 
        

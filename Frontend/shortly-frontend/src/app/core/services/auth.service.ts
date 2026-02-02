@@ -6,8 +6,13 @@ import { jwtDecode } from 'jwt-decode';
 
 // Importar modelos y constantes
 import { UserDTO, UserResponse } from 'src/app/models/user.model';
-import { TokenResponse, RefreshTokenRequest } from 'src/app/models/auth.model';
+import { TokenResponse, RefreshTokenRequest, JwtPayload } from 'src/app/models/auth.model';
 import { STORAGE_KEYS } from '../constants/storage-keys.constants';
+
+const JWT_CLAIMS = {
+  EMAIL: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
+  NAME_ID: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+};
 
 @Injectable({
   providedIn: 'root',
@@ -110,10 +115,10 @@ export class AuthService {
     if (!token) return null;
 
     try {
-      const payload: any = jwtDecode(token);
+      const payload = jwtDecode<JwtPayload>(token);
       return (
         payload.email ||
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
+        payload[JWT_CLAIMS.EMAIL] ||
         null
       );
     } catch (error) {
@@ -163,10 +168,10 @@ export class AuthService {
 
   private extractUserIdFromToken(token: string): string | null {
     try {
-      const payload: any = jwtDecode(token);
+      const payload = jwtDecode<JwtPayload>(token);
       return (
         payload.nameid ||
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+        payload[JWT_CLAIMS.NAME_ID] ||
         null
       );
     } catch (error) {

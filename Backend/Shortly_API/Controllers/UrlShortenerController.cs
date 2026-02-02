@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Shortly_API.Middleware;
+using Shortly_API.Models;
 using Shortly_API.Models.ShortUrlDTOs;
 using Shortly_API.Services;
 using System.Security.Claims;
@@ -63,10 +64,10 @@ namespace Shortly_API.Controllers
         // GET /api/urlshortener/urls
         [HttpGet("urls")]
         [Authorize] // Solo usuarios autenticados pueden ver sus URLs
-        [ProducesResponseType(typeof(List<ShortUrlResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PagedResult<ShortUrlResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<ShortUrlResponse>>> GetUserUrls()
+        public async Task<ActionResult<PagedResult<ShortUrlResponse>>> GetUserUrls([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? search = null, [FromQuery] string? sortBy = null, [FromQuery] string? sortDirection = null, [FromQuery] string? status = null)
         {
             var userId = GetUserIdFromToken();
             if (!userId.HasValue)
@@ -74,7 +75,11 @@ namespace Shortly_API.Controllers
                 return Unauthorized(new { message = "User ID not found in token." });
             }
 
-            var urls = await _urlShortenerService.GetUserUrlsAsync(userId.Value);
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 50) pageSize = 50; // Limitar tamaño máximo de página
+
+            var urls = await _urlShortenerService.GetUserUrlsAsync(userId.Value, page, pageSize, search, sortBy, sortDirection, status);
             return Ok(urls);
         }
 

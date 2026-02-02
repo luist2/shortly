@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // Importar modelos
@@ -9,6 +9,7 @@ import {
   ShortUrlResponse,
   ShortUrlStatsResponse,
 } from 'src/app/models/short-url.model';
+import { PagedResult } from 'src/app/models/paged-result.model';
 
 @Injectable({
   providedIn: 'root',
@@ -32,12 +33,42 @@ export class UrlService {
   }
 
   /**
-   * Obtiene todas las URLs acortadas del usuario autenticado.
-   * @returns Observable con un array de URLs acortadas del usuario.
+   * Obtiene todas las URLs acortadas del usuario autenticado con paginación.
+   * @param page - Número de página (comienza en 1).
+   * @param pageSize - Cantidad de elementos por página.
+   * @returns Observable con el resultado paginado de URLs.
    */
-  getUserUrls(): Observable<ShortUrlResponse[]> {
-    return this.http.get<ShortUrlResponse[]>(
-      `${this.apiUrl}/UrlShortener/urls`
+  getUserUrls(
+    page: number = 1,
+    pageSize: number = 10,
+    search?: string,
+    sortBy?: string,
+    sortDirection?: string,
+    status?: string
+  ): Observable<PagedResult<ShortUrlResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (search) {
+      params = params.set('search', search);
+    }
+    
+    if (sortBy) {
+        params = params.set('sortBy', sortBy);
+    }
+
+    if (sortDirection) {
+        params = params.set('sortDirection', sortDirection);
+    }
+
+    if (status && status !== 'all') {
+        params = params.set('status', status);
+    }
+
+    return this.http.get<PagedResult<ShortUrlResponse>>(
+      `${this.apiUrl}/UrlShortener/urls`,
+      { params }
     );
   }
 

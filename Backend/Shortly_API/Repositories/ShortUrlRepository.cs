@@ -38,13 +38,57 @@ namespace Shortly_API.Repositories
                 .FirstOrDefaultAsync(su => su.ShortCode == shortCode && su.IsActive && !su.IsDeleted);
         }
 
-        public Task<List<ShortUrl>> GetByUserIdAsync(Guid userId)
+        public async Task<(List<ShortUrl> Items, int TotalCount)> GetByUserIdAsync(Guid userId, int page, int pageSize, string? search = null, string? sortBy = null, string? sortDirection = null, string? status = null)
         {
-            // Devolver URLs no eliminadas y ordenadas por fecha de creación descendente
-            return _context.ShortUrls
-                .Where(su => su.UserId == userId && !su.IsDeleted)
-                .OrderByDescending(su => su.CreatedAt)
+            var query = _context.ShortUrls
+                .Where(su => su.UserId == userId && !su.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowerSearch = search.ToLower();
+                query = query.Where(su => 
+                    su.OriginalUrl.ToLower().Contains(lowerSearch) || 
+                    su.ShortCode.ToLower().Contains(lowerSearch));
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                var lowerStatus = status.ToLower();
+                if (lowerStatus == "active")
+                {
+                    query = query.Where(su => su.IsActive);
+                }
+                else if (lowerStatus == "inactive")
+                {
+                    query = query.Where(su => !su.IsActive);
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+
+            query = ApplySorting(query, sortBy, sortDirection);
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        private IQueryable<ShortUrl> ApplySorting(IQueryable<ShortUrl> query, string? sortBy, string? sortDirection)
+        {
+            var isAsc = sortDirection?.ToLower() == "asc";
+
+            return sortBy?.ToLower() switch
+            {
+                "originalurl" => isAsc ? query.OrderBy(u => u.OriginalUrl) : query.OrderByDescending(u => u.OriginalUrl),
+                "shorturl" or "shortcode" => isAsc ? query.OrderBy(u => u.ShortCode) : query.OrderByDescending(u => u.ShortCode),
+                "clickcount" => isAsc ? query.OrderBy(u => u.ClickCount) : query.OrderByDescending(u => u.ClickCount),
+                "createdat" => isAsc ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
+                "status" => isAsc ? query.OrderBy(u => u.IsActive) : query.OrderByDescending(u => u.IsActive),
+                _ => query.OrderByDescending(u => u.CreatedAt) // Default sorting
+            };
         }
 
         public async Task IncrementClickCountAsync(ShortUrl shortUrl)
