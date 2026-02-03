@@ -104,9 +104,10 @@ builder.Services.AddRateLimiter(options =>
                 });
         }
 
-        // Si no hay userId, caer a política anónima
+        // Si no hay userId, usar IP
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: "anonymous",
+            partitionKey: ipAddress,
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 20,
