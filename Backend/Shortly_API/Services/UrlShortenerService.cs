@@ -103,7 +103,8 @@ namespace Shortly_API.Services
                 OriginalUrl = shortUrl.OriginalUrl,
                 ShortUrl = $"{baseDomain}/{shortUrl.ShortCode}",
                 CreatedAt = shortUrl.CreatedAt,
-                ClickCount = shortUrl.ClickCount
+                ClickCount = shortUrl.ClickCount,
+                IsActive = shortUrl.IsActive
             };
         }
 
@@ -155,7 +156,8 @@ namespace Shortly_API.Services
                 OriginalUrl = shortUrl.OriginalUrl,
                 ShortUrl = $"{baseDomain}/{shortUrl.ShortCode}",
                 CreatedAt = shortUrl.CreatedAt,
-                ClickCount = shortUrl.ClickCount
+                ClickCount = shortUrl.ClickCount,
+                IsActive = shortUrl.IsActive
             };
         }
 
