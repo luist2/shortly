@@ -116,22 +116,6 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             });
     });
-
-    // Política para usuarios anónimos: 20 por hora (por IP)
-    options.AddPolicy("anonymous", context =>
-    {
-        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-
-        return RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: ipAddress,
-            factory: _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 20,
-                Window = TimeSpan.FromHours(1),
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 0
-            });
-    });
 });
 
 
