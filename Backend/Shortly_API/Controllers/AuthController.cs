@@ -50,7 +50,7 @@ namespace Shortly_API.Controllers
                 return Unauthorized("Invalid email or password");
             }
 
-            SetRefreshTokenCookie(result.RefreshToken);
+            SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiry);
 
             return Ok(new { AccessToken = result.AccessToken });
         }
@@ -77,7 +77,11 @@ namespace Shortly_API.Controllers
                 return Unauthorized("Invalid refresh token");
             }
 
-            SetRefreshTokenCookie(result.RefreshToken);
+            // Solo actualizar la cookie si el refresh token fue rotado
+            if (result.RefreshToken != refreshToken)
+            {
+                SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiry);
+            }
 
             return Ok(new { AccessToken = result.AccessToken });
         }
@@ -89,14 +93,14 @@ namespace Shortly_API.Controllers
             return Ok(new { message = "Logged out successfully" });
         }
 
-        private void SetRefreshTokenCookie(string refreshToken)
+        private void SetRefreshTokenCookie(string refreshToken, DateTime expiry)
         {
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = expiry,
                 SameSite = SameSiteMode.Strict,
-                Secure = true // Ensure this is true in production!
+                Secure = true // Asegurar que esto sea true en produccion
             };
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
