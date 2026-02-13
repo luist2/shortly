@@ -1,11 +1,11 @@
 export interface TokenResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export interface RefreshTokenRequest {
   userId: string;
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export interface JwtPayload {

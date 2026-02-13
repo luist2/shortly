@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject, map } from 'rxjs';
+import { Observable, tap, BehaviorSubject, map, of, catchError, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { jwtDecode } from 'jwt-decode';
 
@@ -19,6 +19,7 @@ const JWT_CLAIMS = {
 })
 export class AuthService {
   private readonly apiUrl = environment.apiUrl;
+  private _accessToken: string | null = null;
 
   // 1. Estado Reactivo
   private currentUserSubject = new BehaviorSubject<string | null>(null);
@@ -31,10 +32,15 @@ export class AuthService {
   }
 
   private initializeState(): void {
-    const userId = this.getUserIdFromStorage();
-    if (userId && this.hasValidToken()) {
-      this.currentUserSubject.next(userId);
-    }
+    // Intentar refrescar el token silenciosamente al iniciar
+    this.refreshToken().subscribe({
+      next: () => {
+        // El estado se actualiza en handleAuthenticationSuccess llamado por refreshToken
+      },
+      error: () => {
+        this.logout();
+      }
+    });
   }
 
   /**
@@ -52,7 +58,7 @@ export class AuthService {
   /**
    * Inicia sesión con las credenciales del usuario.
    * @param userDTO - Datos del usuario para iniciar sesión. (email, password)
-   * @returns Observable con la respuesta del servidor que incluye los tokens de autenticación.
+   * @returns Observable con la respuesta del servidor que incluye el token de acceso.
    */
   login(userDTO: UserDTO): Observable<TokenResponse> {
     return this.http
@@ -61,22 +67,22 @@ export class AuthService {
   }
 
   /**
-   * Refresca el token de acceso utilizando el token de refresco almacenado.
-   * @param request - Objeto que contiene el userId y el refreshToken.
+   * Refresca el token de acceso utilizando el token de refresco en la cookie HttpOnly.
    * @returns Observable con la nueva respuesta de tokens del servidor.
    */
   refreshToken(): Observable<TokenResponse> {
-    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-    const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+    const userId = this.getUserIdFromStorage();
 
-    if (!refreshToken || !userId) {
-      this.logout(); // Limpiar estado si faltan datos
-      throw new Error('No refresh token or userId found in localStorage');
+    // Si no hay usuario en storage, no podemos intentar refrescar (o al menos no sabemos quién es)
+    // Aunque el endpoint pide userId en el body, podríamos guardarlo en memoria o storage.
+    // Usamos localStorage.USER_ID porque ese sí lo persistimos para saber "quién" se supone que somos.
+    if (!userId) {
+       return throwError(() => new Error('No userId found in storage'));
     }
 
     const body: RefreshTokenRequest = {
-      userId: userId,
-      refreshToken: refreshToken,
+      userId: userId
+      // refreshToken ya no se envía, va en cookie
     };
 
     return this.http
@@ -85,16 +91,15 @@ export class AuthService {
   }
 
   /**
-   * Obtiene el token de acceso almacenado en el localStorage.
+   * Obtiene el token de acceso en memoria.
    * @returns El token de acceso o null si no existe.
    */
   getToken(): string | null {
-    return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    return this._accessToken;
   }
 
   /**
    * Retorna true si el usuario está autenticado (es decir, si existe un token de acceso válido).
-   * Es preferible leer directamente del storage para los Guards por si el token fue borrado manualmente.
    */
   isAuthenticated(): boolean {
     return !!this.getToken();
@@ -128,38 +133,35 @@ export class AuthService {
   }
 
   /**
-   * Cierra la sesión del usuario eliminando los tokens almacenados y limpiando el estado.
+   * Cierra la sesión del usuario llamando al endpoint de logout y limpiando el estado.
    */
   logout(): void {
+    this.http.post(`${this.apiUrl}/Auth/logout`, {}).subscribe({
+      next: () => this.clearLocalState(),
+      error: () => this.clearLocalState() // Limpiar de todos modos
+    });
+  }
+
+  private clearLocalState(): void {
+    this._accessToken = null;
+    localStorage.removeItem(STORAGE_KEYS.USER_ID);
+    // Ya no usamos ACCESS_TOKEN ni REFRESH_TOKEN en localStorage
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER_ID);
     this.currentUserSubject.next(null);
   }
 
   // --- Private Helpers ---
 
   private handleAuthenticationSuccess(tokenResponse: TokenResponse): void {
-    this.saveTokens(tokenResponse);
-    
-    // Actualizar estado reactivo
-    const userId = this.extractUserIdFromToken(tokenResponse.accessToken);
-    this.currentUserSubject.next(userId);
-  }
-
-  private saveTokens(tokenResponse: TokenResponse): void {
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenResponse.accessToken);
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenResponse.refreshToken);
+    this._accessToken = tokenResponse.accessToken;
+    // No guardamos refresh token, va en cookie
 
     const userId = this.extractUserIdFromToken(tokenResponse.accessToken);
     if (userId) {
+      this.currentUserSubject.next(userId);
       localStorage.setItem(STORAGE_KEYS.USER_ID, userId);
     }
-  }
-
-  private hasValidToken(): boolean {
-    const token = this.getToken();
-    return token !== null && token.trim() !== '';
   }
 
   private getUserIdFromStorage(): string | null {

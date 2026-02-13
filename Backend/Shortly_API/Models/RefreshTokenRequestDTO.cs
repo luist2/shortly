@@ -7,7 +7,6 @@ namespace Shortly_API.Models
         [Required]
         public Guid UserId { get; set; }
 
-        [Required]
-        public required string RefreshToken { get; set; }
+        public string? RefreshToken { get; set; }
     }
 }

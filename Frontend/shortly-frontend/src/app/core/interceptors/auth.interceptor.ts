@@ -74,10 +74,11 @@ export class AuthInterceptor implements HttpInterceptor {
       this.isRefreshing = true;
       this.refreshTokenSubject.next(null);
 
-      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      // Usamos getUserId() del servicio en lugar de localStorage directament si es posible
+      // Pero el servicio usa un BehaviorSubject, así que está bien.
       const userId = this.authService.getUserId();
 
-      if (refreshToken && userId) {
+      if (userId) { // Solo verificamos userId, el refresh token está en cookie
         return this.authService.refreshToken().pipe(
           switchMap((tokenResponse: TokenResponse) => {
             this.isRefreshing = false;
@@ -97,7 +98,7 @@ export class AuthInterceptor implements HttpInterceptor {
         this.isRefreshing = false;
         this.authService.logout();
         this.router.navigate(['/login']);
-        return throwError(() => new Error('No refresh token or userId found'));
+        return throwError(() => new Error('No userId found'));
       }
     } else {
       // Si ya se está refrescando el token, esperar hasta que se complete
