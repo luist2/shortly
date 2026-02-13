@@ -33,12 +33,12 @@ namespace Shortly_API.Services
             return await CreateTokenResponse(user);
         }
 
-        private async Task<TokenResponseDTO> CreateTokenResponse(User? user)
+        private async Task<TokenResponseDTO> CreateTokenResponse(User? user, DateTime? existingRefreshTokenExpiry = null)
         {
             return new TokenResponseDTO
             {
                 AccessToken = CreateToken(user),
-                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user)
+                RefreshToken = await GenerateAndSaveRefreshTokenAsync(user, existingRefreshTokenExpiry)
             };
         }
 
@@ -75,7 +75,8 @@ namespace Shortly_API.Services
                 return null;
             }
 
-            return await CreateTokenResponse(user);
+            // Mantener la fecha de expiración original para evitar sesiones infinitas
+            return await CreateTokenResponse(user, user.RefreshTokenExpiryTime);
         }
 
         private async Task<User?> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
@@ -101,11 +102,22 @@ namespace Shortly_API.Services
             return Convert.ToBase64String(randomNumber);
         }
 
-        private async Task<string> GenerateAndSaveRefreshTokenAsync(User user)
+        private async Task<string> GenerateAndSaveRefreshTokenAsync(User user, DateTime? existingExpiryTime = null)
         {
             var refreshToken = GenerateRefreshToken();
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Set expiry time for 7 days
+            
+            // Si hay una fecha de expiración existente (rotación), la mantenemos.
+            // Si no (login nuevo), creamos una nueva fecha de expiración.
+            if (existingExpiryTime.HasValue)
+            {
+                user.RefreshTokenExpiryTime = existingExpiryTime.Value;
+            }
+            else
+            {
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            }
+
             await context.SaveChangesAsync();
             return refreshToken;
         }
