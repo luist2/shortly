@@ -8,6 +8,7 @@ import {
 } from '@angular/router';
 
 import { Observable } from 'rxjs';
+import { filter, take, map } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
 /**
@@ -29,15 +30,22 @@ export class AuthGuard implements CanActivate {
     | Promise<boolean | UrlTree>
     | boolean
     | UrlTree {
-    // Permitir acceso si está autenticado
-    if (this.authService.isAuthenticated()) {
-      return true;
-    }
+    
+    return this.authService.isInitialized$.pipe(
+      filter(isInitialized => isInitialized), // Esperar a que sea true
+      take(1),
+      map(() => {
+        // Permitir acceso si está autenticado
+        if (this.authService.isAuthenticated()) {
+          return true;
+        }
 
-    // Redirigir al login si no está autenticado
-    console.warn('User not authenticated. Redirecting to login.');
-    return this.router.createUrlTree(['/login'], {
-      queryParams: { returnUrl: state.url },
-    });
+        // Redirigir al login si no está autenticado
+        // console.warn('User not authenticated. Redirecting to login.');
+        return this.router.createUrlTree(['/login'], {
+          queryParams: { returnUrl: state.url },
+        });
+      })
+    );
   }
 }

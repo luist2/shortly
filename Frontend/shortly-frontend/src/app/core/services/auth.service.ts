@@ -26,6 +26,9 @@ export class AuthService {
   public currentUser$ = this.currentUserSubject.asObservable();
   public isLoggedIn$ = this.currentUser$.pipe(map(userId => !!userId));
 
+  private isInitializedSubject = new BehaviorSubject<boolean>(false);
+  public isInitialized$ = this.isInitializedSubject.asObservable();
+
   constructor(private http: HttpClient) {
     // Inicializar estado al cargar la app
     this.initializeState();
@@ -35,10 +38,14 @@ export class AuthService {
     // Intentar refrescar el token silenciosamente al iniciar
     this.refreshToken().subscribe({
       next: () => {
-        // El estado se actualiza en handleAuthenticationSuccess llamado por refreshToken
+        this.isInitializedSubject.next(true);
       },
       error: () => {
-        this.logout();
+        // Si falla el refresh (ej: cookie expirada), no hacemos logout explícito aquí 
+        // para evitar loops si el error es de red, pero marcamos como inicializado
+        // y el usuario estará "no logueado" (accessToken null)
+        this.clearLocalState(); // Asegurar estado limpio
+        this.isInitializedSubject.next(true);
       }
     });
   }
@@ -51,7 +58,8 @@ export class AuthService {
   register(userDTO: UserDTO): Observable<UserResponse> {
     return this.http.post<UserResponse>(
       `${this.apiUrl}/Auth/register`,
-      userDTO
+      userDTO,
+      { withCredentials: true }
     );
   }
 
@@ -62,7 +70,7 @@ export class AuthService {
    */
   login(userDTO: UserDTO): Observable<TokenResponse> {
     return this.http
-      .post<TokenResponse>(`${this.apiUrl}/Auth/login`, userDTO)
+      .post<TokenResponse>(`${this.apiUrl}/Auth/login`, userDTO, { withCredentials: true })
       .pipe(tap((response) => this.handleAuthenticationSuccess(response)));
   }
 
@@ -86,7 +94,7 @@ export class AuthService {
     };
 
     return this.http
-      .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-tokens`, body)
+      .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-tokens`, body, { withCredentials: true })
       .pipe(tap((response) => this.handleAuthenticationSuccess(response)));
   }
 
@@ -136,7 +144,7 @@ export class AuthService {
    * Cierra la sesión del usuario llamando al endpoint de logout y limpiando el estado.
    */
   logout(): void {
-    this.http.post(`${this.apiUrl}/Auth/logout`, {}).subscribe({
+    this.http.post(`${this.apiUrl}/Auth/logout`, {}, { withCredentials: true }).subscribe({
       next: () => this.clearLocalState(),
       error: () => this.clearLocalState() // Limpiar de todos modos
     });
