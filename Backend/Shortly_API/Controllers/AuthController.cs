@@ -99,8 +99,9 @@ namespace Shortly_API.Controllers
             {
                 HttpOnly = true,
                 Expires = expiry,
-                SameSite = SameSiteMode.Strict,
-                Secure = true // Asegurar que esto sea true en produccion
+                // None es necesario porque frontend (Netlify) y backend (Render) estan en dominios distintos.
+                SameSite = SameSiteMode.None,
+                Secure = true // Obligatorio cuando SameSite = None
             };
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
