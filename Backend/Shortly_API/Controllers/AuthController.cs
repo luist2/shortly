@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Shortly_API.Entities;
 using Shortly_API.Middleware;
 using Shortly_API.Models;
+using System.Security.Claims;
 using Shortly_API.Services;
 
 namespace Shortly_API.Controllers
@@ -86,10 +87,25 @@ namespace Shortly_API.Controllers
             return Ok(new { AccessToken = result.AccessToken });
         }
 
+        [Authorize]
         [HttpPost("logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            Response.Cookies.Delete("refreshToken");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+
+            await _authService.LogoutAsync(Guid.Parse(userId));
+
+            Response.Cookies.Delete("refreshToken", new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,
+                Secure = true
+            });
+
             return Ok(new { message = "Logged out successfully" });
         }
 
