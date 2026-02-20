@@ -67,7 +67,8 @@ export class AuthInterceptor implements HttpInterceptor {
     return (
       request.url.includes('/Auth/login') ||
       request.url.includes('/Auth/register') ||
-      request.url.includes('/Auth/refresh-tokens')
+      request.url.includes('/Auth/refresh-tokens') ||
+      request.url.includes('/Auth/logout')
     );
   }
 
@@ -94,14 +95,14 @@ export class AuthInterceptor implements HttpInterceptor {
           }),
           catchError((err) => {
             this.isRefreshing = false;
-            this.authService.logout();
+            this.authService.logout(false);
             this.router.navigate(['/login']);
             return throwError(() => err);
           })
         );
       } else {
         this.isRefreshing = false;
-        this.authService.logout();
+        this.authService.logout(false);
         this.router.navigate(['/login']);
         return throwError(() => new Error('No userId found'));
       }
