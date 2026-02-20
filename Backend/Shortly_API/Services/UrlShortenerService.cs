@@ -8,6 +8,9 @@ namespace Shortly_API.Services
 {
     public class UrlShortenerService : IUrlShortenerService
     {
+        private const int DefaultAnonymousExpirationHours = 24;
+        private const int DefaultGenerationMaxRetries = 5;
+
         private readonly IShortUrlRepository _repository;
         private readonly ILogger<UrlShortenerService> _logger;
         private readonly IConfiguration _config;
@@ -54,33 +57,97 @@ namespace Shortly_API.Services
             }
         }
 
+        private int GetShortCodeLength(string configKey)
+        {
+            var configuredLength = _config.GetValue<int?>(configKey);
+            if (!configuredLength.HasValue)
+            {
+                return ShortCodeGenerator.DefaultLength;
+            }
+
+            if (configuredLength.Value <= 0 || configuredLength.Value > ShortCodeGenerator.MaxLength)
+            {
+                _logger.LogWarning(
+                    "Invalid short code length for {ConfigKey}: {ConfiguredLength}. Using default length {DefaultLength}.",
+                    configKey,
+                    configuredLength.Value,
+                    ShortCodeGenerator.DefaultLength);
+                return ShortCodeGenerator.DefaultLength;
+            }
+
+            return configuredLength.Value;
+        }
+
+        private int GetPositiveSetting(string configKey, int defaultValue)
+        {
+            var configuredValue = _config.GetValue<int?>(configKey);
+            if (!configuredValue.HasValue)
+            {
+                return defaultValue;
+            }
+
+            if (configuredValue.Value <= 0)
+            {
+                _logger.LogWarning(
+                    "Invalid value for {ConfigKey}: {ConfiguredValue}. Using default value {DefaultValue}.",
+                    configKey,
+                    configuredValue.Value,
+                    defaultValue);
+                return defaultValue;
+            }
+
+            return configuredValue.Value;
+        }
+
+        private async Task<string> GenerateUniqueShortCodeAsync(int length, int maxRetries)
+        {
+            string shortCode;
+            int retries = 0;
+
+            do
+            {
+                if (retries++ > maxRetries)
+                {
+                    _logger.LogError(
+                        "Failed to generate a unique short code after {MaxRetries} retries with length {Length}.",
+                        maxRetries,
+                        length);
+                    throw new Exception("Failed to generate a unique short code after multiple attempts.");
+                }
+
+                shortCode = ShortCodeGenerator.Generate(length);
+            } while (await _repository.ExistsAsync(shortCode));
+
+            return shortCode;
+        }
+
+        private string GetRequiredBaseDomain()
+        {
+            var baseDomain = _config["AppSettings:BaseDomain"];
+            if (string.IsNullOrWhiteSpace(baseDomain))
+            {
+                throw new InvalidOperationException("AppSettings:BaseDomain is required.");
+            }
+
+            return baseDomain;
+        }
+
         // Método para usuarios anónimos
         public async Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl)
         {
             ValidateOriginalUrl(originalUrl);
 
             // Evitar acortar una URL que apunte a la propia aplicación
-            var baseDomain = _config["AppSettings:BaseDomain"];
+            var baseDomain = GetRequiredBaseDomain();
             if(originalUrl.StartsWith(baseDomain, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Cannot shorten a URL that points to the same domain as the application.");
             }
 
-            // Lógica para generar un código corto único
-            string shortCode;
-            int retries = 0;
-
-            do
-            {
-                if(retries++ > 5)
-                {
-                    _logger.LogError("Failed to generate a unique short code after multiple attempts.");
-                    throw new Exception("Failed to generate a unique short code after multiple attempts.");
-                }
-
-                shortCode = ShortCodeGenerator.Generate();
-
-            } while (await _repository.ExistsAsync(shortCode));
+            var shortCodeLength = GetShortCodeLength("ApiSettings:ShortCode:AnonymousLength");
+            var maxRetries = GetPositiveSetting("ApiSettings:ShortCode:GenerationMaxRetries", DefaultGenerationMaxRetries);
+            var anonymousExpirationHours = GetPositiveSetting("ApiSettings:UrlSettings:AnonymousExpirationHours", DefaultAnonymousExpirationHours);
+            var shortCode = await GenerateUniqueShortCodeAsync(shortCodeLength, maxRetries);
 
             var shortUrl = new ShortUrl
             {
@@ -88,7 +155,7 @@ namespace Shortly_API.Services
                 OriginalUrl = originalUrl,
                 UserId = null, // Usuario anónimo
                 CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddHours(24), // Expiración en 24 horas
+                ExpiresAt = DateTime.UtcNow.AddHours(anonymousExpirationHours),
                 IsActive = true
             };
 
@@ -115,26 +182,15 @@ namespace Shortly_API.Services
             ValidateUserId(userId);
 
             // Evitar acortar una URL que apunte a la propia aplicación
-            var baseDomain = _config["AppSettings:BaseDomain"];
+            var baseDomain = GetRequiredBaseDomain();
             if(originalUrl.StartsWith(baseDomain, StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("Cannot shorten a URL that points to the same domain as the application.");
             }
 
-            // Lógica para generar un código corto único
-            string shortCode;
-            int retries = 0;
-
-            do
-            {
-                if(retries++ > 5)
-                {
-                    _logger.LogError("Failed to generate a unique short code after multiple attempts.");
-                    throw new Exception("Failed to generate a unique short code after multiple attempts.");
-                }
-                shortCode = ShortCodeGenerator.Generate(8);
-
-            } while (await _repository.ExistsAsync(shortCode));
+            var shortCodeLength = GetShortCodeLength("ApiSettings:ShortCode:AuthenticatedLength");
+            var maxRetries = GetPositiveSetting("ApiSettings:ShortCode:GenerationMaxRetries", DefaultGenerationMaxRetries);
+            var shortCode = await GenerateUniqueShortCodeAsync(shortCodeLength, maxRetries);
 
             var shortUrl = new ShortUrl
             {
@@ -236,7 +292,7 @@ namespace Shortly_API.Services
                 throw new KeyNotFoundException("Short URL not found or does not belong to the user.");
             }
 
-            var baseDomain = _config["AppSettings:BaseDomain"];
+            var baseDomain = GetRequiredBaseDomain();
 
             var response = new ShortUrlStatsResponse
             {
@@ -259,7 +315,7 @@ namespace Shortly_API.Services
         {
             ValidateUserId(userId);
 
-            var baseDomain = _config["AppSettings:BaseDomain"];
+            var baseDomain = GetRequiredBaseDomain();
             var (shortUrls, totalCount) = await _repository.GetByUserIdAsync(userId, page, pageSize, search, sortBy, sortDirection, status);
 
             var items = shortUrls.Select(su => new ShortUrlResponse
