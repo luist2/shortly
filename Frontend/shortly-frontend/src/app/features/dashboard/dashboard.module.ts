@@ -8,6 +8,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 // Modules
 import { SharedModule } from 'src/app/shared/shared.module';
@@ -36,6 +37,7 @@ const routes: Routes = [
     MatTableModule,
     MatButtonToggleModule,
     MatPaginatorModule,
+    MatProgressBarModule,
   ],
 })
 export class DashboardModule {}

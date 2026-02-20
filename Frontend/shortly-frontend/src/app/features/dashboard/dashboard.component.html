@@ -109,6 +109,12 @@
     class="table-card"
   >
     <mat-card-content>
+      <!-- Barra de progreso para operaciones de tabla (sort, filtro, búsqueda, paginación) -->
+      <mat-progress-bar
+        *ngIf="isTableLoading"
+        mode="indeterminate"
+        class="table-progress-bar"
+      ></mat-progress-bar>
       <div class="table-container">
         <table mat-table [dataSource]="dataSource" matSort class="urls-table">
           <!-- Columna: Estado -->

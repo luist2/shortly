@@ -66,6 +66,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Estado de carga
   isLoading = false;
+  isInitialLoad = true;
+  isTableLoading = false;
 
   // Control de errores
   errorMessage: string | null = null;
@@ -120,7 +122,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
    * Carga las URLs del usuario desde el backend.
    */
   loadUserUrls(): void {
-    this.isLoading = true;
+    if (this.isInitialLoad) {
+      this.isLoading = true;
+    } else {
+      this.isTableLoading = true;
+    }
     this.errorMessage = null;
 
     // MatPaginator usa índice 0, el backend usa índice 1
@@ -143,12 +149,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
           return;
         }
 
+        this.isInitialLoad = false;
         this.isLoading = false;
+        this.isTableLoading = false;
       },
       error: (error) => {
         console.error('Error loading user URLs:', error);
         this.errorMessage = 'Failed to load URLs. Please try again later.';
         this.isLoading = false;
+        this.isTableLoading = false;
       },
     });
   }
