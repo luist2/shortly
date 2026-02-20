@@ -1,17 +1,22 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject, map, of, catchError, throwError } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, tap, BehaviorSubject, map, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { jwtDecode } from 'jwt-decode';
 
 // Importar modelos y constantes
 import { UserDTO, UserResponse } from 'src/app/models/user.model';
-import { TokenResponse, RefreshTokenRequest, JwtPayload } from 'src/app/models/auth.model';
+import {
+  TokenResponse,
+  RefreshTokenRequest,
+  JwtPayload,
+} from 'src/app/models/auth.model';
 import { STORAGE_KEYS } from '../constants/storage-keys.constants';
 
 const JWT_CLAIMS = {
   EMAIL: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress',
-  NAME_ID: 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+  NAME_ID:
+    'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
 };
 
 @Injectable({
@@ -24,7 +29,7 @@ export class AuthService {
   // 1. Estado Reactivo
   private currentUserSubject = new BehaviorSubject<string | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-  public isLoggedIn$ = this.currentUser$.pipe(map(userId => !!userId));
+  public isLoggedIn$ = this.currentUser$.pipe(map((userId) => !!userId));
 
   private isInitializedSubject = new BehaviorSubject<boolean>(false);
   public isInitialized$ = this.isInitializedSubject.asObservable();
@@ -41,12 +46,12 @@ export class AuthService {
         this.isInitializedSubject.next(true);
       },
       error: () => {
-        // Si falla el refresh (ej: cookie expirada), no hacemos logout explícito aquí 
+        // Si falla el refresh (ej: cookie expirada), no hacemos logout explícito aquí
         // para evitar loops si el error es de red, pero marcamos como inicializado
         // y el usuario estará "no logueado" (accessToken null)
         this.clearLocalState(); // Asegurar estado limpio
         this.isInitializedSubject.next(true);
-      }
+      },
     });
   }
 
@@ -59,7 +64,7 @@ export class AuthService {
     return this.http.post<UserResponse>(
       `${this.apiUrl}/Auth/register`,
       userDTO,
-      { withCredentials: true }
+      { withCredentials: true },
     );
   }
 
@@ -70,7 +75,9 @@ export class AuthService {
    */
   login(userDTO: UserDTO): Observable<TokenResponse> {
     return this.http
-      .post<TokenResponse>(`${this.apiUrl}/Auth/login`, userDTO, { withCredentials: true })
+      .post<TokenResponse>(`${this.apiUrl}/Auth/login`, userDTO, {
+        withCredentials: true,
+      })
       .pipe(tap((response) => this.handleAuthenticationSuccess(response)));
   }
 
@@ -85,16 +92,18 @@ export class AuthService {
     // Aunque el endpoint pide userId en el body, podríamos guardarlo en memoria o storage.
     // Usamos localStorage.USER_ID porque ese sí lo persistimos para saber "quién" se supone que somos.
     if (!userId) {
-       return throwError(() => new Error('No userId found in storage'));
+      return throwError(() => new Error('No userId found in storage'));
     }
 
     const body: RefreshTokenRequest = {
-      userId: userId
+      userId: userId,
       // refreshToken ya no se envía, va en cookie
     };
 
     return this.http
-      .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-tokens`, body, { withCredentials: true })
+      .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-tokens`, body, {
+        withCredentials: true,
+      })
       .pipe(tap((response) => this.handleAuthenticationSuccess(response)));
   }
 
@@ -129,11 +138,7 @@ export class AuthService {
 
     try {
       const payload = jwtDecode<JwtPayload>(token);
-      return (
-        payload.email ||
-        payload[JWT_CLAIMS.EMAIL] ||
-        null
-      );
+      return payload.email || payload[JWT_CLAIMS.EMAIL] || null;
     } catch (error) {
       console.error('Error decoding token:', error);
       return null;
@@ -143,11 +148,32 @@ export class AuthService {
   /**
    * Cierra la sesión del usuario llamando al endpoint de logout y limpiando el estado.
    */
-  logout(): void {
-    this.http.post(`${this.apiUrl}/Auth/logout`, {}, { withCredentials: true }).subscribe({
-      next: () => this.clearLocalState(),
-      error: () => this.clearLocalState() // Limpiar de todos modos
-    });
+  logout(callApi: boolean = true): void {
+    const tokenSnapshot = this._accessToken;
+
+    // Limpiar primero para reflejar logout inmediato en guards/UI y evitar race conditions de redireccion.
+    this.clearLocalState();
+
+    if (!callApi) {
+      return;
+    }
+
+    // Intentar invalidar refresh token en backend; si falla, no se revierte estado local.
+    const headers = tokenSnapshot
+      ? new HttpHeaders({ Authorization: `Bearer ${tokenSnapshot}` })
+      : undefined;
+
+    this.http
+      .post(
+        `${this.apiUrl}/Auth/logout`,
+        {},
+        { withCredentials: true, headers },
+      )
+      .subscribe({
+        error: () => {
+          // No-op: el estado local ya fue limpiado.
+        },
+      });
   }
 
   private clearLocalState(): void {
@@ -179,11 +205,7 @@ export class AuthService {
   private extractUserIdFromToken(token: string): string | null {
     try {
       const payload = jwtDecode<JwtPayload>(token);
-      return (
-        payload.nameid ||
-        payload[JWT_CLAIMS.NAME_ID] ||
-        null
-      );
+      return payload.nameid || payload[JWT_CLAIMS.NAME_ID] || null;
     } catch (error) {
       console.error('Error decoding token:', error);
       return null;

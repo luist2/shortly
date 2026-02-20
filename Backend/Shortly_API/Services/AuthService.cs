@@ -130,6 +130,16 @@ namespace Shortly_API.Services
             return refreshToken;
         }
 
+        public async Task LogoutAsync(Guid userId)
+        {
+            var user = await context.Users.FindAsync(userId);
+            if (user is null) return;
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            await context.SaveChangesAsync();
+        }
+
         private string CreateToken(User user)
         {
             var claims = new List<Claim>

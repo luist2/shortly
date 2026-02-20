@@ -8,5 +8,6 @@ namespace Shortly_API.Services
         Task<UserResponseDTO?> RegisterAsync(UserDTO request);
         Task<TokenResponseDTO?> LoginAsync(UserDTO request);
         Task<TokenResponseDTO> RefreshTokensAsync(RefreshTokenRequestDTO request);
+        Task LogoutAsync(Guid userId);
     }
 }
