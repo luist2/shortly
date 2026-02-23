@@ -54,7 +54,7 @@ namespace Shortly_API.Services
             var user = new User
             {
                 Email = request.Email,
-                Role = "User"
+                Role = configuration.GetValue<string>("GeneralSettings:DefaultRole") ?? "User"
             };
 
             user.PasswordHash = new PasswordHasher<User>().HashPassword(user, request.Password);
@@ -78,7 +78,8 @@ namespace Shortly_API.Services
             }
 
             var timeRemaining = user.RefreshTokenExpiryTime!.Value - DateTime.UtcNow;
-            bool shouldRotateRefreshToken = timeRemaining.TotalHours < 24;
+            var rotationHours = configuration.GetValue<int>("JwtSettings:RefreshTokenRotationHours");
+            bool shouldRotateRefreshToken = timeRemaining.TotalHours < rotationHours;
 
             if (shouldRotateRefreshToken)
             {
@@ -124,7 +125,8 @@ namespace Shortly_API.Services
         {
             var refreshToken = GenerateRefreshToken();
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            var refreshTokenExpiryDays = configuration.GetValue<int>("JwtSettings:RefreshTokenExpiryDays");
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
 
             await context.SaveChangesAsync();
             return refreshToken;
@@ -149,16 +151,18 @@ namespace Shortly_API.Services
                 new Claim(ClaimTypes.Role, user.Role)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("JwtSettings:Token")!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
+            var accessTokenExpiryMinutes = configuration.GetValue<int>("JwtSettings:AccessTokenExpiryMinutes");
+
             var tokenDescriptor = new JwtSecurityToken
             (
-                issuer: configuration.GetValue<string>("AppSettings:Issuer"),
-                audience: configuration.GetValue<string>("AppSettings:Audience"),
+                issuer: configuration.GetValue<string>("JwtSettings:Issuer"),
+                audience: configuration.GetValue<string>("JwtSettings:Audience"),
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15),
+                expires: DateTime.UtcNow.AddMinutes(accessTokenExpiryMinutes),
                 signingCredentials: creds
             );
 

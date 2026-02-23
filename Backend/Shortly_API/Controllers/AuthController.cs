@@ -15,10 +15,12 @@ namespace Shortly_API.Controllers
     {
 
         private readonly IAuthService _authService;
+        private readonly string _refreshTokenCookieName;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, IConfiguration configuration)
         {
             _authService = authService;
+            _refreshTokenCookieName = configuration.GetValue<string>("CookieSettings:RefreshTokenCookieName") ?? "refreshToken";
         }
 
         [HttpPost("register")]
@@ -63,7 +65,7 @@ namespace Shortly_API.Controllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TokenResponseDTO>> RefreshTokens(RefreshTokenRequestDTO request)
         {
-            var refreshToken = Request.Cookies["refreshToken"];
+            var refreshToken = Request.Cookies[_refreshTokenCookieName];
 
             if (string.IsNullOrEmpty(refreshToken))
             {
@@ -99,7 +101,7 @@ namespace Shortly_API.Controllers
 
             await _authService.LogoutAsync(Guid.Parse(userId));
 
-            Response.Cookies.Delete("refreshToken", new CookieOptions
+            Response.Cookies.Delete(_refreshTokenCookieName, new CookieOptions
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.None,
@@ -119,7 +121,7 @@ namespace Shortly_API.Controllers
                 SameSite = SameSiteMode.None,
                 Secure = true // Obligatorio cuando SameSite = None
             };
-            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+            Response.Cookies.Append(_refreshTokenCookieName, refreshToken, cookieOptions);
         }
 
         [Authorize]

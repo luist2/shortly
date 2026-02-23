@@ -25,14 +25,14 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+var allowedOrigins = builder.Configuration
+    .GetSection("ApiSettings:AllowedOrigins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:4200",
-                "https://shortly-platform.netlify.app"
-            )
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -56,12 +56,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = builder.Configuration["AppSettings:Issuer"],
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidateAudience = true,
-            ValidAudience = builder.Configuration["AppSettings:Audience"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
             ValidateLifetime = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)),
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Token"]!)),
             ValidateIssuerSigningKey = true
         };
     });
@@ -97,7 +97,7 @@ builder.Services.AddRateLimiter(options =>
                 partitionKey: userId,
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 100,
+                    PermitLimit = builder.Configuration.GetValue<int>("ApiSettings:RateLimiting:AuthenticatedPermitLimit"),
                     Window = TimeSpan.FromHours(1),
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                     QueueLimit = 0
@@ -110,7 +110,7 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: ipAddress,
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 20,
+                PermitLimit = builder.Configuration.GetValue<int>("ApiSettings:RateLimiting:AnonymousPermitLimit"),
                 Window = TimeSpan.FromHours(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0

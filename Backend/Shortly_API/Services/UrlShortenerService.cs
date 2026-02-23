@@ -123,10 +123,10 @@ namespace Shortly_API.Services
 
         private string GetRequiredBaseDomain()
         {
-            var baseDomain = _config["AppSettings:BaseDomain"];
+            var baseDomain = _config["GeneralSettings:BaseDomain"];
             if (string.IsNullOrWhiteSpace(baseDomain))
             {
-                throw new InvalidOperationException("AppSettings:BaseDomain is required.");
+                throw new InvalidOperationException("GeneralSettings:BaseDomain is required.");
             }
 
             return baseDomain;

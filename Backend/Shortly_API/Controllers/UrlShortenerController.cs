@@ -15,10 +15,12 @@ namespace Shortly_API.Controllers
     public class UrlShortenerController : ControllerBase
     {
         private readonly IUrlShortenerService _urlShortenerService;
+        private readonly IConfiguration _configuration;
 
-        public UrlShortenerController(IUrlShortenerService urlShortenerService)
+        public UrlShortenerController(IUrlShortenerService urlShortenerService, IConfiguration configuration)
         {
             _urlShortenerService = urlShortenerService;
+            _configuration = configuration;
         }
 
         // Método para obtener el UserId del token (si existe)
@@ -75,9 +77,12 @@ namespace Shortly_API.Controllers
                 return Unauthorized(new { message = "User ID not found in token." });
             }
 
+            var defaultPageSize = _configuration.GetValue<int>("ApiSettings:Pagination:DefaultPageSize");
+            var maxPageSize = _configuration.GetValue<int>("ApiSettings:Pagination:MaxPageSize");
+
             if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = 10;
-            if (pageSize > 50) pageSize = 50; // Limitar tamaño máximo de página
+            if (pageSize < 1) pageSize = defaultPageSize;
+            if (pageSize > maxPageSize) pageSize = maxPageSize; // Limitar tamaño máximo de página
 
             var urls = await _urlShortenerService.GetUserUrlsAsync(userId.Value, page, pageSize, search, sortBy, sortDirection, status);
             return Ok(urls);
