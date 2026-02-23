@@ -6,9 +6,7 @@
         <mat-icon class="title-icon">add_link</mat-icon>
         Shorten Your URL
       </mat-card-title>
-      <mat-card-subtitle
-        >Paste your long URL below to create a short link</mat-card-subtitle
-      >
+      <mat-card-subtitle>Paste your long URL below to create a short link</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
@@ -16,32 +14,33 @@
         <!-- Campo URL Original -->
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Enter your URL</mat-label>
-          <input
-            matInput
-            type="url"
-            formControlName="originalUrl"
-            placeholder="https://example.com/your-long-url"
-            autocomplete="url"
-          />
+          <input matInput type="url" formControlName="originalUrl" placeholder="https://example.com/your-long-url"
+            autocomplete="url" />
           <mat-icon matPrefix>link</mat-icon>
           <mat-error *ngIf="urlForm.get('originalUrl')?.invalid">
             {{ getErrorMessage("originalUrl") }}
           </mat-error>
         </mat-form-field>
 
+        <!-- Campo Expiración (Solo Autenticados) -->
+        <mat-form-field appearance="outline" class="full-width" *ngIf="isAuthenticated">
+          <mat-label>Expiration Time</mat-label>
+          <mat-select formControlName="expiresInHours">
+            <mat-option [value]="1">1 Hour</mat-option>
+            <mat-option [value]="24">1 Day</mat-option>
+            <mat-option [value]="72">3 Days</mat-option>
+            <mat-option [value]="168">1 Week</mat-option>
+            <mat-option [value]="336">2 Weeks</mat-option>
+          </mat-select>
+          <mat-icon matPrefix>timeline</mat-icon>
+          <mat-error *ngIf="urlForm.get('expiresInHours')?.invalid">
+            This field is required
+          </mat-error>
+        </mat-form-field>
+
         <!-- Botón Submit -->
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          class="full-width submit-button"
-          [disabled]="isLoading"
-        >
-          <mat-spinner
-            *ngIf="isLoading"
-            diameter="20"
-            class="button-spinner"
-          ></mat-spinner>
+        <button mat-raised-button color="primary" type="submit" class="full-width submit-button" [disabled]="isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
           <span *ngIf="!isLoading">
             <mat-icon>content_cut</mat-icon>
             Shorten URL
@@ -77,11 +76,7 @@
           Your Short URL:
         </label>
         <div class="short-url-display">
-          <a
-            [href]="createdUrl.shortUrl"
-            target="_blank"
-            class="short-url-link"
-          >
+          <a [href]="createdUrl.shortUrl" target="_blank" class="short-url-link">
             {{ createdUrl.shortUrl }}
           </a>
         </div>
@@ -89,22 +84,12 @@
 
       <!-- Botones de Acción -->
       <div class="action-buttons">
-        <button
-          mat-raised-button
-          color="primary"
-          class="action-btn"
-          (click)="copyToClipboard()"
-        >
+        <button mat-raised-button color="primary" class="action-btn" (click)="copyToClipboard()">
           <mat-icon>content_copy</mat-icon>
           Copy URL
         </button>
 
-        <button
-          mat-stroked-button
-          color="primary"
-          routerLink="/dashboard"
-          class="action-btn"
-        >
+        <button mat-stroked-button color="primary" routerLink="/dashboard" class="action-btn">
           <mat-icon>dashboard</mat-icon>
           View in Dashboard
         </button>

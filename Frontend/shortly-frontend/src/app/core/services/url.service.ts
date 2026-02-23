@@ -17,15 +17,19 @@ import { PagedResult } from 'src/app/models/paged-result.model';
 export class UrlService {
   private readonly apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Crea una nueva URL acortada.
    * @param originalUrl - URL original a acortar.
    * @returns Observable con la respuesta del servidor que incluye el shortCode y la URL acortada.
    */
-  createShortUrl(originalUrl: string): Observable<ShortUrlResponse> {
+  createShortUrl(originalUrl: string, expiresInHours?: number): Observable<ShortUrlResponse> {
     const body: CreateShortUrlRequest = { originalUrl };
+
+    if (expiresInHours) {
+      body.expiresInHours = expiresInHours;
+    }
     return this.http.post<ShortUrlResponse>(
       `${this.apiUrl}/UrlShortener/urls`,
       body
@@ -53,17 +57,17 @@ export class UrlService {
     if (search) {
       params = params.set('search', search);
     }
-    
+
     if (sortBy) {
-        params = params.set('sortBy', sortBy);
+      params = params.set('sortBy', sortBy);
     }
 
     if (sortDirection) {
-        params = params.set('sortDirection', sortDirection);
+      params = params.set('sortDirection', sortDirection);
     }
 
     if (status && status !== 'all') {
-        params = params.set('status', status);
+      params = params.set('status', status);
     }
 
     return this.http.get<PagedResult<ShortUrlResponse>>(

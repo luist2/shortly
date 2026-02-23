@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UrlService } from 'src/app/core/services/url.service';
+import { AuthService } from 'src/app/core/services/auth.service';
 import { ShortUrlResponse } from 'src/app/models/short-url.model';
 import { Clipboard } from '@angular/cdk/clipboard';
 
@@ -19,9 +20,14 @@ export class UrlCreateComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private urlService: UrlService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
     private clipboard: Clipboard
-  ) {}
+  ) { }
+
+  get isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -38,6 +44,13 @@ export class UrlCreateComponent implements OnInit {
         ],
       ],
     });
+
+    if (this.isAuthenticated) {
+      this.urlForm.addControl(
+        'expiresInHours',
+        this.fb.control(168, [Validators.required]) // Default to 1 week (168 hours)
+      );
+    }
   }
 
   onSubmit(): void {
@@ -47,8 +60,9 @@ export class UrlCreateComponent implements OnInit {
     }
     this.isLoading = true;
     const originalUrl = this.urlForm.get('originalUrl')?.value;
+    const expiresInHours = this.isAuthenticated ? this.urlForm.get('expiresInHours')?.value : undefined;
 
-    this.urlService.createShortUrl(originalUrl).subscribe({
+    this.urlService.createShortUrl(originalUrl, expiresInHours).subscribe({
       next: (response: ShortUrlResponse) => {
         this.isLoading = false;
         this.createdUrl = response;

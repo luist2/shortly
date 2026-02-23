@@ -11,6 +11,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
 // CDK
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -29,6 +30,7 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
   ],
   exports: [
     // Angular Common
@@ -46,6 +48,7 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     MatTooltipModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatDialogModule,
 
     // Componentes compartidos
@@ -53,4 +56,4 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     LoadingSpinnerComponent,
   ],
 })
-export class SharedModule {}
+export class SharedModule { }

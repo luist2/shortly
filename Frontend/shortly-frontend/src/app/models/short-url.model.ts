@@ -1,5 +1,6 @@
 export interface CreateShortUrlRequest {
   originalUrl: string;
+  expiresInHours?: number;
 }
 
 export interface ShortUrlResponse {
