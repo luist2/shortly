@@ -20,7 +20,7 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initForm();
@@ -45,13 +45,13 @@ export class LoginComponent implements OnInit {
     this.authService.login(userDTO).subscribe({
       next: (response) => {
         this.isLoading = false;
+        this.router.navigate(['/dashboard']);
         this.snackBar.open('Login successful!', 'Close', {
           duration: 3000,
           horizontalPosition: 'right',
           verticalPosition: 'bottom',
           panelClass: ['success-snackbar'],
         });
-        this.router.navigate(['/dashboard']);
       },
       error: (error) => {
         this.isLoading = false;
