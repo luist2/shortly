@@ -176,7 +176,7 @@ namespace Shortly_API.Services
         }
 
         // Método para usuarios autenticados
-        public async Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl, Guid userId)
+        public async Task<ShortUrlResponse> CreateShortUrlAsync(string originalUrl, Guid userId, int expiresInHours)
         {
             ValidateOriginalUrl(originalUrl);
             ValidateUserId(userId);
@@ -200,6 +200,8 @@ namespace Shortly_API.Services
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
+
+            shortUrl.ExpiresAt = shortUrl.CreatedAt.AddHours(expiresInHours);
 
             await _repository.CreateAsync(shortUrl);
             await _repository.SaveChangesAsync();

@@ -51,8 +51,8 @@ namespace Shortly_API.Controllers
 
             if (userId.HasValue)
             {
-                // Usuario autenticado: URL sin expiración
-                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId.Value);
+                // Usuario autenticado: URL con expiración opcional definida por el usuario
+                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId.Value, request.ExpiresInHours);
             }
             else
             {
