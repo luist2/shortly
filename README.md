@@ -17,9 +17,6 @@ Un acortador de URLs moderno y eficiente construido con .NET y Angular.
 
 ---
 
-<!-- Recomendación: Reemplaza este enlace con una captura de pantalla real de tu aplicación -->
-![Shortly Dashboard Screenshot](https://via.placeholder.com/1000x500?text=Captura+del+Dashboard+de+Shortly)
-
 ## Características Principales
 
 - **Acortamiento de URLs** con códigos únicos altamente eficientes.
