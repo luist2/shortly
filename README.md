@@ -79,6 +79,7 @@ La aplicación estará disponible en `http://localhost:4200`
 POST   /api/auth/register               # Registro de usuario
 POST   /api/auth/login                  # Inicio de sesión
 POST   /api/auth/refresh-tokens         # Refrescar tokens
+POST   /api/auth/logout                 # Cerrar sesión
 ```
 
 **Gestión de URLs**
