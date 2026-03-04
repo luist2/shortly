@@ -60,7 +60,7 @@ namespace Shortly_API.Controllers
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<TokenResponseDTO>> RefreshTokens(RefreshTokenRequestDTO request)
+        public async Task<ActionResult<TokenResponseDTO>> RefreshTokens()
         {
             var refreshToken = Request.Cookies[_refreshTokenCookieName];
 
@@ -69,9 +69,7 @@ namespace Shortly_API.Controllers
                 return Unauthorized("No refresh token found in cookie");
             }
 
-            request.RefreshToken = refreshToken;
-
-            var result = await _authService.RefreshTokensAsync(request);
+            var result = await _authService.RefreshTokensAsync(refreshToken);
             if (result is null || result.AccessToken is null || result.RefreshToken is null)
             {
                 return Unauthorized("Invalid refresh token");

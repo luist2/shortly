@@ -3,11 +3,6 @@ export interface TokenResponse {
   refreshToken?: string;
 }
 
-export interface RefreshTokenRequest {
-  userId: string;
-  refreshToken?: string;
-}
-
 export interface JwtPayload {
   nameid?: string;
   email?: string;

@@ -85,9 +85,9 @@ namespace Shortly_API.Services
             };
         }
 
-        public async Task<TokenResponseDTO?> RefreshTokensAsync(RefreshTokenRequestDTO request)
+        public async Task<TokenResponseDTO?> RefreshTokensAsync(string refreshToken)
         {
-            if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            if (string.IsNullOrWhiteSpace(refreshToken))
             {
                 return null;
             }
@@ -95,12 +95,9 @@ namespace Shortly_API.Services
             var now = DateTime.UtcNow;
             await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
-            // TODO: remove UserId from refresh request and resolve the session only from cookie token.
             var currentSession = await context.UserSessions
                 .Include(s => s.User)
-                .FirstOrDefaultAsync(s =>
-                    s.UserId == request.UserId &&
-                    s.RefreshToken == request.RefreshToken);
+                .FirstOrDefaultAsync(s => s.RefreshToken == refreshToken);
 
             if (currentSession is null || !IsSessionActive(currentSession, now))
             {
