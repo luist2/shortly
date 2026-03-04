@@ -20,6 +20,9 @@ namespace Shortly_API.Services
         private const string RevokeReasonUserLogoutAll = "user_logout_all";
         private const int DefaultMaxActiveSessions = 3;
 
+        /// <summary>
+        /// Authenticates a user, enforces the max active session policy, and issues a new token pair.
+        /// </summary>
         public async Task<TokenResponseDTO?> LoginAsync(UserDTO request)
         {
             var user = await context.Users
@@ -60,6 +63,9 @@ namespace Shortly_API.Services
             return BuildTokenResponse(user, newSession.ExpiresAtUtc, newRefreshToken);
         }
 
+        /// <summary>
+        /// Registers a new user if the email is not already in use.
+        /// </summary>
         public async Task<UserResponseDTO?> RegisterAsync(UserDTO request)
         {
             if (await context.Users.AnyAsync(u => u.Email == request.Email))
@@ -85,6 +91,9 @@ namespace Shortly_API.Services
             };
         }
 
+        /// <summary>
+        /// Refreshes access/refresh tokens using the refresh token from the HttpOnly cookie.
+        /// </summary>
         public async Task<TokenResponseDTO?> RefreshTokensAsync(string refreshToken)
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -129,6 +138,9 @@ namespace Shortly_API.Services
             return BuildTokenResponse(user, rotatedSession.ExpiresAtUtc, rotatedRefreshToken);
         }
 
+        /// <summary>
+        /// Generates a cryptographically secure random refresh token.
+        /// </summary>
         private static string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
@@ -139,6 +151,9 @@ namespace Shortly_API.Services
             return Convert.ToBase64String(randomNumber);
         }
 
+        /// <summary>
+        /// Produces a unique refresh token + hash pair for persistence.
+        /// </summary>
         private async Task<(string rawRefreshToken, string refreshTokenHash)> GenerateUniqueRefreshTokenPairAsync()
         {
             for (var attempt = 0; attempt < 10; attempt++)
@@ -156,6 +171,9 @@ namespace Shortly_API.Services
             return (fallbackRawToken, HashRefreshToken(fallbackRawToken));
         }
 
+        /// <summary>
+        /// Creates and tracks a new user session row with hashed refresh token.
+        /// </summary>
         private async Task<(UserSession session, string refreshToken)> CreateSessionAsync(Guid userId, DateTime now)
         {
             var refreshTokenExpiryDays = configuration.GetValue<int>("JwtSettings:RefreshTokenExpiryDays");
@@ -175,11 +193,17 @@ namespace Shortly_API.Services
             return (session, refreshToken);
         }
 
+        /// <summary>
+        /// Determines whether a session is still valid for refresh/logout operations.
+        /// </summary>
         private static bool IsSessionActive(UserSession session, DateTime now)
         {
             return session.RevokedAtUtc == null && session.ExpiresAtUtc > now;
         }
 
+        /// <summary>
+        /// Marks a session as revoked once; repeated calls are no-ops.
+        /// </summary>
         private static void RevokeSession(UserSession session, DateTime now, string reason)
         {
             if (session.RevokedAtUtc is not null)
@@ -191,6 +215,9 @@ namespace Shortly_API.Services
             session.RevokeReason = reason;
         }
 
+        /// <summary>
+        /// Builds the auth response sent to clients after login/refresh.
+        /// </summary>
         private TokenResponseDTO BuildTokenResponse(User user, DateTime refreshTokenExpiry, string refreshToken)
         {
             return new TokenResponseDTO
@@ -201,12 +228,18 @@ namespace Shortly_API.Services
             };
         }
 
+        /// <summary>
+        /// Returns the configured max active sessions, with a safe minimum of 1.
+        /// </summary>
         private int GetMaxActiveSessions()
         {
             var configured = configuration.GetValue<int?>("JwtSettings:MaxActiveSessions") ?? DefaultMaxActiveSessions;
             return Math.Max(1, configured);
         }
 
+        /// <summary>
+        /// Hashes refresh tokens with HMACSHA256 and a server-side pepper.
+        /// </summary>
         private string HashRefreshToken(string refreshToken)
         {
             var pepper = configuration.GetValue<string>("JwtSettings:RefreshTokenPepper");
@@ -222,6 +255,9 @@ namespace Shortly_API.Services
             return Convert.ToHexString(hashBytes);
         }
 
+        /// <summary>
+        /// Logs out only the current session, identified by userId + refresh token cookie.
+        /// </summary>
         public async Task LogoutAsync(Guid userId, string? refreshToken)
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -247,6 +283,9 @@ namespace Shortly_API.Services
             await context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Revokes all active sessions for a user and returns the number of sessions revoked.
+        /// </summary>
         public async Task<int> LogoutAllAsync(Guid userId)
         {
             var now = DateTime.UtcNow;
@@ -263,6 +302,9 @@ namespace Shortly_API.Services
             return activeSessions.Count;
         }
 
+        /// <summary>
+        /// Creates a signed JWT access token with user identity and role claims.
+        /// </summary>
         private string CreateToken(User user)
         {
             var claims = new List<Claim>

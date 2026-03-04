@@ -8,6 +8,9 @@ using System.Security.Claims;
 
 namespace Shortly_API.Controllers
 {
+    /// <summary>
+    /// Handles account registration, login, token refresh, and logout operations.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -15,12 +18,20 @@ namespace Shortly_API.Controllers
         private readonly IAuthService _authService;
         private readonly string _refreshTokenCookieName;
 
+        /// <summary>
+        /// Creates a new auth controller instance.
+        /// </summary>
         public AuthController(IAuthService authService, IConfiguration configuration)
         {
             _authService = authService;
             _refreshTokenCookieName = configuration.GetValue<string>("CookieSettings:RefreshTokenCookieName") ?? "refreshToken";
         }
 
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="request">User registration payload.</param>
+        /// <returns>Created user information or conflict when email is already used.</returns>
         [HttpPost("register")]
         [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
@@ -37,6 +48,11 @@ namespace Shortly_API.Controllers
             return Ok(response);
         }
 
+        /// <summary>
+        /// Authenticates user credentials and starts a new session.
+        /// </summary>
+        /// <param name="request">User login payload.</param>
+        /// <returns>Access token in body and refresh token in HttpOnly cookie.</returns>
         [HttpPost("login")]
         [ProducesResponseType(typeof(TokenResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
@@ -51,10 +67,13 @@ namespace Shortly_API.Controllers
             }
 
             SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiry);
-
             return Ok(new { AccessToken = result.AccessToken });
         }
 
+        /// <summary>
+        /// Refreshes the access token using the refresh token stored in cookie.
+        /// </summary>
+        /// <returns>New access token and rotated refresh cookie when applicable.</returns>
         [HttpPost("refresh-tokens")]
         [ProducesResponseType(typeof(TokenResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
@@ -63,7 +82,6 @@ namespace Shortly_API.Controllers
         public async Task<ActionResult<TokenResponseDTO>> RefreshTokens()
         {
             var refreshToken = Request.Cookies[_refreshTokenCookieName];
-
             if (string.IsNullOrEmpty(refreshToken))
             {
                 return Unauthorized("No refresh token found in cookie");
@@ -75,7 +93,7 @@ namespace Shortly_API.Controllers
                 return Unauthorized("Invalid refresh token");
             }
 
-            // Solo actualizar la cookie si el refresh token fue rotado
+            // Only rewrite cookie when refresh token rotation occurred.
             if (result.RefreshToken != refreshToken)
             {
                 SetRefreshTokenCookie(result.RefreshToken, result.RefreshTokenExpiry);
@@ -84,6 +102,10 @@ namespace Shortly_API.Controllers
             return Ok(new { AccessToken = result.AccessToken });
         }
 
+        /// <summary>
+        /// Logs out only the current session.
+        /// </summary>
+        /// <returns>Success when current session is revoked and cookie deleted.</returns>
         [Authorize]
         [HttpPost("logout")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -103,6 +125,10 @@ namespace Shortly_API.Controllers
             return Ok(new { message = "Logged out successfully" });
         }
 
+        /// <summary>
+        /// Logs out all active sessions for the authenticated user.
+        /// </summary>
+        /// <returns>Total revoked sessions and deletion of current refresh cookie.</returns>
         [Authorize]
         [HttpPost("logout-all")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -120,19 +146,24 @@ namespace Shortly_API.Controllers
             return Ok(new { message = "Logged out from all sessions", revokedSessions });
         }
 
+        /// <summary>
+        /// Writes the refresh token as secure HttpOnly cookie.
+        /// </summary>
         private void SetRefreshTokenCookie(string refreshToken, DateTime expiry)
         {
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Expires = expiry,
-                // None es necesario porque frontend (Netlify) y backend (Render) estan en dominios distintos.
                 SameSite = SameSiteMode.None,
-                Secure = true // Obligatorio cuando SameSite = None
+                Secure = true
             };
             Response.Cookies.Append(_refreshTokenCookieName, refreshToken, cookieOptions);
         }
 
+        /// <summary>
+        /// Deletes the refresh token cookie using matching secure cookie settings.
+        /// </summary>
         private void DeleteRefreshTokenCookie()
         {
             Response.Cookies.Delete(_refreshTokenCookieName, new CookieOptions
@@ -143,6 +174,9 @@ namespace Shortly_API.Controllers
             });
         }
 
+        /// <summary>
+        /// Health endpoint to verify JWT authentication.
+        /// </summary>
         [Authorize]
         [HttpGet]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
@@ -153,6 +187,9 @@ namespace Shortly_API.Controllers
             return Ok("You are authenticated");
         }
 
+        /// <summary>
+        /// Sample endpoint restricted to users with Admin role.
+        /// </summary>
         [Authorize(Roles = "Admin")]
         [HttpGet("admin-only")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
