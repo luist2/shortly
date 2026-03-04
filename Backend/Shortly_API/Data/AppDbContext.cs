@@ -11,6 +11,7 @@ namespace Shortly_API.Data
 
         public DbSet<User> Users => Set<User>();
         public DbSet<ShortUrl> ShortUrls => Set<ShortUrl>();
+        public DbSet<UserSession> UserSessions => Set<UserSession>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -21,6 +22,24 @@ namespace Shortly_API.Data
                 entity.HasIndex(e => e.Email)
                       .IsUnique()
                       .HasDatabaseName("IX_Users_Email");
+
+                entity.HasMany(e => e.Sessions)
+                      .WithOne(s => s.User)
+                      .HasForeignKey(s => s.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<UserSession>(entity =>
+            {
+                entity.HasIndex(e => new { e.UserId, e.CreatedAtUtc })
+                      .HasDatabaseName("IX_UserSessions_UserId_CreatedAtUtc");
+
+                entity.HasIndex(e => e.RefreshToken)
+                      .IsUnique()
+                      .HasDatabaseName("UX_UserSessions_RefreshToken");
+
+                entity.HasIndex(e => e.ExpiresAtUtc)
+                      .HasDatabaseName("IX_UserSessions_ExpiresAtUtc");
             });
 
             modelBuilder.Entity<ShortUrl>(entity =>

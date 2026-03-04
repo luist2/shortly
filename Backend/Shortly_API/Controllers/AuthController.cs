@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shortly_API.Entities;
 using Shortly_API.Middleware;
 using Shortly_API.Models;
-using System.Security.Claims;
 using Shortly_API.Services;
+using System.Security.Claims;
 
 namespace Shortly_API.Controllers
 {
@@ -13,7 +12,6 @@ namespace Shortly_API.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-
         private readonly IAuthService _authService;
         private readonly string _refreshTokenCookieName;
 
@@ -46,7 +44,6 @@ namespace Shortly_API.Controllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<TokenResponseDTO>> Login(UserDTO request)
         {
-
             var result = await _authService.LoginAsync(request);
             if (result is null)
             {
@@ -69,7 +66,7 @@ namespace Shortly_API.Controllers
 
             if (string.IsNullOrEmpty(refreshToken))
             {
-                 return Unauthorized("No refresh token found in cookie");
+                return Unauthorized("No refresh token found in cookie");
             }
 
             request.RefreshToken = refreshToken;
@@ -91,6 +88,8 @@ namespace Shortly_API.Controllers
 
         [Authorize]
         [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Logout()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -99,16 +98,28 @@ namespace Shortly_API.Controllers
                 return Unauthorized();
             }
 
-            await _authService.LogoutAsync(Guid.Parse(userId));
+            var refreshToken = Request.Cookies[_refreshTokenCookieName];
+            await _authService.LogoutAsync(Guid.Parse(userId), refreshToken);
 
-            Response.Cookies.Delete(_refreshTokenCookieName, new CookieOptions
-            {
-                HttpOnly = true,
-                SameSite = SameSiteMode.None,
-                Secure = true
-            });
-
+            DeleteRefreshTokenCookie();
             return Ok(new { message = "Logged out successfully" });
+        }
+
+        [Authorize]
+        [HttpPost("logout-all")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> LogoutAll()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId is null)
+            {
+                return Unauthorized();
+            }
+
+            var revokedSessions = await _authService.LogoutAllAsync(Guid.Parse(userId));
+            DeleteRefreshTokenCookie();
+            return Ok(new { message = "Logged out from all sessions", revokedSessions });
         }
 
         private void SetRefreshTokenCookie(string refreshToken, DateTime expiry)
@@ -122,6 +133,16 @@ namespace Shortly_API.Controllers
                 Secure = true // Obligatorio cuando SameSite = None
             };
             Response.Cookies.Append(_refreshTokenCookieName, refreshToken, cookieOptions);
+        }
+
+        private void DeleteRefreshTokenCookie()
+        {
+            Response.Cookies.Delete(_refreshTokenCookieName, new CookieOptions
+            {
+                HttpOnly = true,
+                SameSite = SameSiteMode.None,
+                Secure = true
+            });
         }
 
         [Authorize]

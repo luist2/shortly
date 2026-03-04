@@ -18,7 +18,6 @@ namespace Shortly_API.Entities
         [MaxLength(50)]
         public string Role { get; set; } = string.Empty;
 
-        public string? RefreshToken { get; set; } = null;
-        public DateTime? RefreshTokenExpiryTime { get; set; }
+        public ICollection<UserSession> Sessions { get; set; } = new List<UserSession>();
     }
 }

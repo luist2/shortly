@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Shortly_API.Data;
 using Shortly_API.Entities;
 using Shortly_API.Models;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -13,9 +14,14 @@ namespace Shortly_API.Services
 {
     public class AuthService(AppDbContext context, IConfiguration configuration) : IAuthService
     {
+        private const string RevokeReasonLimitExceeded = "limit_exceeded";
+        private const string RevokeReasonRotated = "rotated";
+        private const string RevokeReasonUserLogout = "user_logout";
+        private const string RevokeReasonUserLogoutAll = "user_logout_all";
+        private const int DefaultMaxActiveSessions = 3;
+
         public async Task<TokenResponseDTO?> LoginAsync(UserDTO request)
         {
-
             var user = await context.Users
                 .FirstOrDefaultAsync(u => u.Email == request.Email);
 
@@ -30,18 +36,28 @@ namespace Shortly_API.Services
                 return null;
             }
 
-            return await CreateTokenResponse(user);
-        }
+            var now = DateTime.UtcNow;
 
-        private async Task<TokenResponseDTO> CreateTokenResponse(User user)
-        {
-            var refreshToken = await GenerateAndSaveRefreshTokenAsync(user);
-            return new TokenResponseDTO
+            await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+            var maxActiveSessions = GetMaxActiveSessions();
+            var activeSessions = await context.UserSessions
+                .Where(s => s.UserId == user.Id && s.RevokedAtUtc == null && s.ExpiresAtUtc > now)
+                .OrderBy(s => s.CreatedAtUtc)
+                .ToListAsync();
+
+            var sessionsToRevoke = Math.Max(0, activeSessions.Count - maxActiveSessions + 1);
+            foreach (var session in activeSessions.Take(sessionsToRevoke))
             {
-                AccessToken = CreateToken(user),
-                RefreshToken = refreshToken,
-                RefreshTokenExpiry = user.RefreshTokenExpiryTime!.Value
-            };
+                RevokeSession(session, now, RevokeReasonLimitExceeded);
+            }
+
+            var newSession = await CreateSessionAsync(user.Id, now);
+
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return BuildTokenResponse(user, newSession);
         }
 
         public async Task<UserResponseDTO?> RegisterAsync(UserDTO request)
@@ -71,44 +87,48 @@ namespace Shortly_API.Services
 
         public async Task<TokenResponseDTO?> RefreshTokensAsync(RefreshTokenRequestDTO request)
         {
-            var user = await ValidateRefreshTokenAsync(request.UserId, request.RefreshToken);
-            if (user is null)
+            if (string.IsNullOrWhiteSpace(request.RefreshToken))
             {
                 return null;
             }
 
-            var timeRemaining = user.RefreshTokenExpiryTime!.Value - DateTime.UtcNow;
+            var now = DateTime.UtcNow;
+            await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+            // TODO: remove UserId from refresh request and resolve the session only from cookie token.
+            var currentSession = await context.UserSessions
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s =>
+                    s.UserId == request.UserId &&
+                    s.RefreshToken == request.RefreshToken);
+
+            if (currentSession is null || !IsSessionActive(currentSession, now))
+            {
+                return null;
+            }
+
+            currentSession.LastUsedAtUtc = now;
+            var user = currentSession.User;
+
+            var timeRemaining = currentSession.ExpiresAtUtc - now;
             var rotationHours = configuration.GetValue<int>("JwtSettings:RefreshTokenRotationHours");
-            bool shouldRotateRefreshToken = timeRemaining.TotalHours < rotationHours;
+            var shouldRotateRefreshToken = timeRemaining.TotalHours < rotationHours;
 
-            if (shouldRotateRefreshToken)
+            if (!shouldRotateRefreshToken)
             {
-                // Token próximo a expirar: rotar con nueva expiración de 7 días
-                return await CreateTokenResponse(user);
-            }
-            else
-            {
-                // Token aún válido: solo generar nuevo access token
-                return new TokenResponseDTO
-                {
-                    AccessToken = CreateToken(user),
-                    RefreshToken = user.RefreshToken!,
-                    RefreshTokenExpiry = user.RefreshTokenExpiryTime!.Value
-                };
-            }
-        }
-
-        private async Task<User?> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
-        {
-            var user = await context.Users.FindAsync(userId);
-
-            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-            {
-                return null; // Invalid or expired refresh token
+                await context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return BuildTokenResponse(user, currentSession);
             }
 
-            return user; // Valid user with valid refresh token
+            RevokeSession(currentSession, now, RevokeReasonRotated);
+            var rotatedSession = await CreateSessionAsync(user.Id, now);
+            currentSession.ReplacedBySessionId = rotatedSession.Id;
 
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return BuildTokenResponse(user, rotatedSession);
         }
 
         private string GenerateRefreshToken()
@@ -121,25 +141,110 @@ namespace Shortly_API.Services
             return Convert.ToBase64String(randomNumber);
         }
 
-        private async Task<string> GenerateAndSaveRefreshTokenAsync(User user)
+        private async Task<string> GenerateUniqueRefreshTokenAsync()
         {
-            var refreshToken = GenerateRefreshToken();
-            user.RefreshToken = refreshToken;
-            var refreshTokenExpiryDays = configuration.GetValue<int>("JwtSettings:RefreshTokenExpiryDays");
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
+            for (var attempt = 0; attempt < 5; attempt++)
+            {
+                var token = GenerateRefreshToken();
+                var exists = await context.UserSessions.AnyAsync(s => s.RefreshToken == token);
+                if (!exists)
+                {
+                    return token;
+                }
+            }
 
-            await context.SaveChangesAsync();
-            return refreshToken;
+            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
 
-        public async Task LogoutAsync(Guid userId)
+        private async Task<UserSession> CreateSessionAsync(Guid userId, DateTime now)
         {
-            var user = await context.Users.FindAsync(userId);
-            if (user is null) return;
+            var refreshTokenExpiryDays = configuration.GetValue<int>("JwtSettings:RefreshTokenExpiryDays");
+            var refreshToken = await GenerateUniqueRefreshTokenAsync();
+            var session = new UserSession
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                RefreshToken = refreshToken,
+                CreatedAtUtc = now,
+                ExpiresAtUtc = now.AddDays(refreshTokenExpiryDays),
+                LastUsedAtUtc = now
+            };
 
-            user.RefreshToken = null;
-            user.RefreshTokenExpiryTime = null;
+            context.UserSessions.Add(session);
+            return session;
+        }
+
+        private static bool IsSessionActive(UserSession session, DateTime now)
+        {
+            return session.RevokedAtUtc == null && session.ExpiresAtUtc > now;
+        }
+
+        private static void RevokeSession(UserSession session, DateTime now, string reason)
+        {
+            if (session.RevokedAtUtc is not null)
+            {
+                return;
+            }
+
+            session.RevokedAtUtc = now;
+            session.RevokeReason = reason;
+        }
+
+        private TokenResponseDTO BuildTokenResponse(User user, UserSession session)
+        {
+            return new TokenResponseDTO
+            {
+                AccessToken = CreateToken(user),
+                RefreshToken = session.RefreshToken,
+                RefreshTokenExpiry = session.ExpiresAtUtc
+            };
+        }
+
+        private int GetMaxActiveSessions()
+        {
+            var configured = configuration.GetValue<int?>("JwtSettings:MaxActiveSessions") ?? DefaultMaxActiveSessions;
+            return Math.Max(1, configured);
+        }
+
+        public async Task LogoutAsync(Guid userId, string? refreshToken)
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            var session = await context.UserSessions
+                .FirstOrDefaultAsync(s =>
+                    s.UserId == userId &&
+                    s.RefreshToken == refreshToken &&
+                    s.RevokedAtUtc == null &&
+                    s.ExpiresAtUtc > now);
+
+            if (session is null)
+            {
+                return;
+            }
+
+            RevokeSession(session, now, RevokeReasonUserLogout);
+
             await context.SaveChangesAsync();
+        }
+
+        public async Task<int> LogoutAllAsync(Guid userId)
+        {
+            var now = DateTime.UtcNow;
+            var activeSessions = await context.UserSessions
+                .Where(s => s.UserId == userId && s.RevokedAtUtc == null && s.ExpiresAtUtc > now)
+                .ToListAsync();
+
+            foreach (var session in activeSessions)
+            {
+                RevokeSession(session, now, RevokeReasonUserLogoutAll);
+            }
+
+            await context.SaveChangesAsync();
+            return activeSessions.Count;
         }
 
         private string CreateToken(User user)
