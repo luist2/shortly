@@ -52,12 +52,12 @@ namespace Shortly_API.Services
                 RevokeSession(session, now, RevokeReasonLimitExceeded);
             }
 
-            var newSession = await CreateSessionAsync(user.Id, now);
+            var (newSession, newRefreshToken) = await CreateSessionAsync(user.Id, now);
 
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return BuildTokenResponse(user, newSession);
+            return BuildTokenResponse(user, newSession.ExpiresAtUtc, newRefreshToken);
         }
 
         public async Task<UserResponseDTO?> RegisterAsync(UserDTO request)
@@ -92,12 +92,13 @@ namespace Shortly_API.Services
                 return null;
             }
 
+            var refreshTokenHash = HashRefreshToken(refreshToken);
             var now = DateTime.UtcNow;
             await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
             var currentSession = await context.UserSessions
                 .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.RefreshToken == refreshToken);
+                .FirstOrDefaultAsync(s => s.RefreshTokenHash == refreshTokenHash);
 
             if (currentSession is null || !IsSessionActive(currentSession, now))
             {
@@ -115,20 +116,20 @@ namespace Shortly_API.Services
             {
                 await context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return BuildTokenResponse(user, currentSession);
+                return BuildTokenResponse(user, currentSession.ExpiresAtUtc, refreshToken);
             }
 
             RevokeSession(currentSession, now, RevokeReasonRotated);
-            var rotatedSession = await CreateSessionAsync(user.Id, now);
+            var (rotatedSession, rotatedRefreshToken) = await CreateSessionAsync(user.Id, now);
             currentSession.ReplacedBySessionId = rotatedSession.Id;
 
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            return BuildTokenResponse(user, rotatedSession);
+            return BuildTokenResponse(user, rotatedSession.ExpiresAtUtc, rotatedRefreshToken);
         }
 
-        private string GenerateRefreshToken()
+        private static string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
             using (var rng = RandomNumberGenerator.Create())
@@ -138,37 +139,40 @@ namespace Shortly_API.Services
             return Convert.ToBase64String(randomNumber);
         }
 
-        private async Task<string> GenerateUniqueRefreshTokenAsync()
+        private async Task<(string rawRefreshToken, string refreshTokenHash)> GenerateUniqueRefreshTokenPairAsync()
         {
-            for (var attempt = 0; attempt < 5; attempt++)
+            for (var attempt = 0; attempt < 10; attempt++)
             {
-                var token = GenerateRefreshToken();
-                var exists = await context.UserSessions.AnyAsync(s => s.RefreshToken == token);
+                var rawToken = GenerateRefreshToken();
+                var tokenHash = HashRefreshToken(rawToken);
+                var exists = await context.UserSessions.AnyAsync(s => s.RefreshTokenHash == tokenHash);
                 if (!exists)
                 {
-                    return token;
+                    return (rawToken, tokenHash);
                 }
             }
 
-            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            var fallbackRawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            return (fallbackRawToken, HashRefreshToken(fallbackRawToken));
         }
 
-        private async Task<UserSession> CreateSessionAsync(Guid userId, DateTime now)
+        private async Task<(UserSession session, string refreshToken)> CreateSessionAsync(Guid userId, DateTime now)
         {
             var refreshTokenExpiryDays = configuration.GetValue<int>("JwtSettings:RefreshTokenExpiryDays");
-            var refreshToken = await GenerateUniqueRefreshTokenAsync();
+            var (refreshToken, refreshTokenHash) = await GenerateUniqueRefreshTokenPairAsync();
+
             var session = new UserSession
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                RefreshToken = refreshToken,
+                RefreshTokenHash = refreshTokenHash,
                 CreatedAtUtc = now,
                 ExpiresAtUtc = now.AddDays(refreshTokenExpiryDays),
                 LastUsedAtUtc = now
             };
 
             context.UserSessions.Add(session);
-            return session;
+            return (session, refreshToken);
         }
 
         private static bool IsSessionActive(UserSession session, DateTime now)
@@ -187,13 +191,13 @@ namespace Shortly_API.Services
             session.RevokeReason = reason;
         }
 
-        private TokenResponseDTO BuildTokenResponse(User user, UserSession session)
+        private TokenResponseDTO BuildTokenResponse(User user, DateTime refreshTokenExpiry, string refreshToken)
         {
             return new TokenResponseDTO
             {
                 AccessToken = CreateToken(user),
-                RefreshToken = session.RefreshToken,
-                RefreshTokenExpiry = session.ExpiresAtUtc
+                RefreshToken = refreshToken,
+                RefreshTokenExpiry = refreshTokenExpiry
             };
         }
 
@@ -203,6 +207,21 @@ namespace Shortly_API.Services
             return Math.Max(1, configured);
         }
 
+        private string HashRefreshToken(string refreshToken)
+        {
+            var pepper = configuration.GetValue<string>("JwtSettings:RefreshTokenPepper");
+            if (string.IsNullOrWhiteSpace(pepper))
+            {
+                throw new InvalidOperationException("JwtSettings:RefreshTokenPepper is required.");
+            }
+
+            var key = Encoding.UTF8.GetBytes(pepper);
+            var payload = Encoding.UTF8.GetBytes(refreshToken);
+            using var hmac = new HMACSHA256(key);
+            var hashBytes = hmac.ComputeHash(payload);
+            return Convert.ToHexString(hashBytes);
+        }
+
         public async Task LogoutAsync(Guid userId, string? refreshToken)
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -210,11 +229,12 @@ namespace Shortly_API.Services
                 return;
             }
 
+            var refreshTokenHash = HashRefreshToken(refreshToken);
             var now = DateTime.UtcNow;
             var session = await context.UserSessions
                 .FirstOrDefaultAsync(s =>
                     s.UserId == userId &&
-                    s.RefreshToken == refreshToken &&
+                    s.RefreshTokenHash == refreshTokenHash &&
                     s.RevokedAtUtc == null &&
                     s.ExpiresAtUtc > now);
 
@@ -224,7 +244,6 @@ namespace Shortly_API.Services
             }
 
             RevokeSession(session, now, RevokeReasonUserLogout);
-
             await context.SaveChangesAsync();
         }
 

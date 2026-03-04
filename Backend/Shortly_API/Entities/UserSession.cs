@@ -15,7 +15,7 @@ namespace Shortly_API.Entities
         public User User { get; set; } = null!;
 
         [Required]
-        public string RefreshToken { get; set; } = string.Empty;
+        public string RefreshTokenHash { get; set; } = string.Empty;
 
         [Required]
         public DateTime CreatedAtUtc { get; set; }

@@ -34,9 +34,9 @@ namespace Shortly_API.Data
                 entity.HasIndex(e => new { e.UserId, e.CreatedAtUtc })
                       .HasDatabaseName("IX_UserSessions_UserId_CreatedAtUtc");
 
-                entity.HasIndex(e => e.RefreshToken)
+                entity.HasIndex(e => e.RefreshTokenHash)
                       .IsUnique()
-                      .HasDatabaseName("UX_UserSessions_RefreshToken");
+                      .HasDatabaseName("UX_UserSessions_RefreshTokenHash");
 
                 entity.HasIndex(e => e.ExpiresAtUtc)
                       .HasDatabaseName("IX_UserSessions_ExpiresAtUtc");
