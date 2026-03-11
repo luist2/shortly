@@ -60,7 +60,9 @@ Debes configurar los bloques críticos como tu base de datos y la llave secreta 
     "Audience": "Shortly.Client",
     "AccessTokenExpiryMinutes": 15,
     "RefreshTokenExpiryDays": 7,
-    "RefreshTokenRotationHours": 24
+    "RefreshTokenRotationHours": 24,
+    "RefreshTokenPepper": "OTRO_SECRETO_PARA_HASHEAR_REFRESH_TOKENS",
+    "MaxActiveSessions": 3
   },
   "GeneralSettings": {
     "BaseDomain": "https://localhost:7161", 
