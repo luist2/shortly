@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Shortly_API.Data;
 using Shortly_API.Middleware;
@@ -44,7 +45,29 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Enter your JWT Bearer token in this format: Bearer {token}",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
+        }
+    };
+
+    options.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securityScheme, Array.Empty<string>() }
+    });
+});
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -142,9 +165,12 @@ if (app.Environment.IsDevelopment())
     {
         options.RouteTemplate = "openapi/{documentName}.json";
     });
-    app.UseSwaggerUI(); // opcional si querés comparar con SwaggerUI
+    app.UseSwaggerUI();
 
-    app.MapScalarApiReference();
+    app.MapScalarApiReference(options =>
+    {
+        options.AddPreferredSecuritySchemes(new[] { JwtBearerDefaults.AuthenticationScheme });
+    });
 }
 
 app.UseForwardedHeaders();
