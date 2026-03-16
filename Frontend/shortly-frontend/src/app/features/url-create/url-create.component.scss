@@ -54,36 +54,43 @@
     }
   }
 
-  mat-card-content {
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    mat-card-content {
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
 
       .full-width {
         width: 100%;
       }
 
-      .submit-button {
-        height: 48px;
-        font-size: 16px;
-        font-weight: 500;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        .submit-button {
+          height: 48px;
+          font-size: 16px;
+          font-weight: 500;
+          margin-top: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
 
-        .button-spinner {
-          display: inline-block;
-          margin-right: 8px;
+          .button-spinner {
+            display: inline-block;
+            margin-right: 8px;
+          }
+
+          mat-icon {
+            margin-right: 4px;
+          }
         }
 
-        mat-icon {
-          margin-right: 4px;
+        .anonymous-expiry {
+          margin: -4px 0 4px;
+          font-size: 13px;
+          color: rgba(0, 0, 0, 0.7);
+          text-align: center;
         }
       }
-    }
 
     // Estilos para el resultado
     .url-info {

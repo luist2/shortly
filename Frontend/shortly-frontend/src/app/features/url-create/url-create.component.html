@@ -38,6 +38,10 @@
           </mat-error>
         </mat-form-field>
 
+        <p class="anonymous-expiry" *ngIf="!isAuthenticated">
+          Anonymous URLs expire in 24 hours. Register to choose the expiration time.
+        </p>
+
         <!-- Botón Submit -->
         <button mat-raised-button color="primary" type="submit" class="full-width submit-button" [disabled]="isLoading">
           <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
