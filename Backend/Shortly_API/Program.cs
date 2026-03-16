@@ -123,11 +123,25 @@ builder.Services.AddRateLimiter(options =>
                     PermitLimit = builder.Configuration.GetValue<int>("ApiSettings:RateLimiting:AuthenticatedPermitLimit"),
                     Window = TimeSpan.FromHours(1),
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                    QueueLimit = 0
-                });
+                QueueLimit = 0
+            });
         }
 
-        // Si no hay userId, usar IP
+        // Si no hay userId, usar un bucket fijo para evitar consumir presupuesto por IP
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: "unknown-user",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = builder.Configuration.GetValue<int>("ApiSettings:RateLimiting:AnonymousPermitLimit"),
+                Window = TimeSpan.FromHours(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+    // Política para usuarios anónimos: límite por IP
+    options.AddPolicy("anonymous", context =>
+    {
         var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: ipAddress,

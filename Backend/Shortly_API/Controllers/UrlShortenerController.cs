@@ -64,7 +64,7 @@ namespace Shortly_API.Controllers
         // Endpoint para usuarios anónimos
         [HttpPost("urls/anonymous")]
         [AllowAnonymous]
-        [EnableRateLimiting("authenticated")]
+        [EnableRateLimiting("anonymous")]
         [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
