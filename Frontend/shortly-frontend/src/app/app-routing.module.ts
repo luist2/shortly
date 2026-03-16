@@ -9,11 +9,10 @@ import { UrlCreateComponent } from './features/url-create/url-create.component';
 import { UrlStatsComponent } from './features/url-stats/url-stats.component';
 
 const routes: Routes = [
-  // Ruta raíz - Redirige según autenticación
+  // Ruta raíz - Vista pública de creación
   {
     path: '',
-    redirectTo: '/dashboard',
-    pathMatch: 'full',
+    component: UrlCreateComponent,
   },
 
   // RUTAS PÚBLICAS (con PublicGuard)

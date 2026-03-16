@@ -181,6 +181,25 @@
         }
       }
     }
+
+    .cta {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      text-align: center;
+
+      p {
+        margin: 0 0 8px;
+        color: rgba(0, 0, 0, 0.7);
+      }
+
+      .cta-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+    }
   }
 }
 
