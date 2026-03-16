@@ -16,6 +16,7 @@ namespace Shortly_API.Controllers
     {
         private readonly IUrlShortenerService _urlShortenerService;
         private readonly IConfiguration _configuration;
+        private static readonly int[] AllowedExpirationHours = { 1, 24, 72, 168, 336 };
 
         public UrlShortenerController(IUrlShortenerService urlShortenerService, IConfiguration configuration)
         {
@@ -51,8 +52,27 @@ namespace Shortly_API.Controllers
 
             if (userId.HasValue)
             {
-                // Usuario autenticado: URL con expiración opcional definida por el usuario
-                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId.Value, request.ExpiresInHours);
+                // Usuario autenticado: URL con expiración definida por el usuario
+                if (!request.ExpiresInHours.HasValue)
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Expiration time is required for authenticated users."
+                    });
+                }
+
+                var expiresInHours = request.ExpiresInHours.Value;
+                if (!AllowedExpirationHours.Contains(expiresInHours))
+                {
+                    return BadRequest(new ErrorResponse
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Allowed expiration values are 1, 24, 72, 168, or 336 hours."
+                    });
+                }
+
+                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId.Value, expiresInHours);
             }
             else
             {
