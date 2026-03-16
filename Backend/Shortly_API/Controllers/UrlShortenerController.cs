@@ -16,7 +16,6 @@ namespace Shortly_API.Controllers
     {
         private readonly IUrlShortenerService _urlShortenerService;
         private readonly IConfiguration _configuration;
-        private static readonly int[] AllowedExpirationHours = { 1, 24, 72, 168, 336 };
 
         public UrlShortenerController(IUrlShortenerService urlShortenerService, IConfiguration configuration)
         {
@@ -36,50 +35,43 @@ namespace Shortly_API.Controllers
         }
 
         // POST /api/urlshortener/urls
-        // Endpoint que permite tanto usuarios autenticados como anónimos
+        // Endpoint solo para usuarios autenticados
         [HttpPost("urls")]
-        [AllowAnonymous] // Permite acceso sin autenticación
+        [Authorize]
+        [EnableRateLimiting("authenticated")]
+        [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ShortUrlResponse>> CreateShortUrlAuthenticated([FromBody] CreateShortUrlRequest request)
+        {
+            var userId = GetUserIdFromToken();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { message = "User ID not found in token." });
+            }
+
+            var result = await _urlShortenerService.CreateShortUrlAsync(
+                request.OriginalUrl,
+                userId.Value,
+                request.ExpiresInHours);
+
+            return Ok(result);
+        }
+
+        // POST /api/urlshortener/urls/anonymous
+        // Endpoint para usuarios anónimos
+        [HttpPost("urls/anonymous")]
+        [AllowAnonymous]
         [EnableRateLimiting("authenticated")]
         [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ShortUrlResponse>> CreateShortUrl([FromBody] CreateShortUrlRequest request)
+        public async Task<ActionResult<ShortUrlResponse>> CreateShortUrlAnonymous([FromBody] CreateAnonymousShortUrlRequest request)
         {
-            var userId = GetUserIdFromToken();
-
-            ShortUrlResponse result;
-
-            if (userId.HasValue)
-            {
-                // Usuario autenticado: URL con expiración definida por el usuario
-                if (!request.ExpiresInHours.HasValue)
-                {
-                    return BadRequest(new ErrorResponse
-                    {
-                        StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "Expiration time is required for authenticated users."
-                    });
-                }
-
-                var expiresInHours = request.ExpiresInHours.Value;
-                if (!AllowedExpirationHours.Contains(expiresInHours))
-                {
-                    return BadRequest(new ErrorResponse
-                    {
-                        StatusCode = StatusCodes.Status400BadRequest,
-                        Message = "Allowed expiration values are 1, 24, 72, 168, or 336 hours."
-                    });
-                }
-
-                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId.Value, expiresInHours);
-            }
-            else
-            {
-                // Usuario anónimo: URL con expiración de 24 horas
-                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl);
-            }
-
+            var result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl);
             return Ok(result);
         }
 
