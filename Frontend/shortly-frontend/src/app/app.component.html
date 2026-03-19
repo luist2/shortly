@@ -20,7 +20,7 @@
           <span matListItemTitle>Dashboard</span>
         </a>
         <mat-divider></mat-divider>
-        <button mat-list-item (click)="logout()">
+        <button mat-list-item (click)="logout(); drawer.close()">
           <mat-icon matListItemIcon>logout</mat-icon>
           <span matListItemTitle>Logout</span>
         </button>
