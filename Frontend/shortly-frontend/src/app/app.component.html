@@ -1,6 +1,6 @@
 <mat-sidenav-container class="sidenav-container">
   <!-- SIDENAV real -->
-  <mat-sidenav #drawer mode="over" class="mobile-sidenav">
+  <mat-sidenav #drawer mode="over" position="end" class="mobile-sidenav">
     <div class="sidenav-profile-header" *ngIf="isAuthenticated()">
       <mat-icon class="profile-avatar">account_circle</mat-icon>
       <div class="profile-info">
@@ -31,9 +31,6 @@
   <!-- TOOLBAR / NAVBAR -->
   <mat-sidenav-content>
     <mat-toolbar color="primary" class="toolbar">
-      <button mat-icon-button class="menu-button" (click)="drawer.toggle()" *ngIf="isAuthenticated()">
-        <mat-icon>menu</mat-icon>
-      </button>
 
       <a class="logo" routerLink="/">
         <mat-icon class="logo-icon">link</mat-icon>
@@ -73,6 +70,10 @@
           </button>
         </mat-menu>
       </div>
+
+      <button mat-icon-button class="menu-button" (click)="drawer.toggle()" *ngIf="isAuthenticated()">
+        <mat-icon>menu</mat-icon>
+      </button>
     </mat-toolbar>
 
     <div class="content">
