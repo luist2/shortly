@@ -71,18 +71,24 @@
           font-size: 16px;
           font-weight: 500;
           margin-top: 8px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
+          position: relative;
 
-          .button-spinner {
-            display: inline-block;
-            margin-right: 8px;
+          .submit-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            
+            mat-icon {
+              margin-right: 0;
+            }
           }
 
-          mat-icon {
-            margin-right: 4px;
+          .button-spinner {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
           }
         }
 

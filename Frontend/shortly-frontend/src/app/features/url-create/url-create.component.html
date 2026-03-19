@@ -45,7 +45,7 @@
         <!-- Botón Submit -->
         <button mat-raised-button color="primary" type="submit" class="full-width submit-button" [disabled]="isLoading">
           <mat-spinner *ngIf="isLoading" diameter="20" class="button-spinner"></mat-spinner>
-          <span *ngIf="!isLoading">
+          <span *ngIf="!isLoading" class="submit-content">
             <mat-icon>content_cut</mat-icon>
             Shorten URL
           </span>
