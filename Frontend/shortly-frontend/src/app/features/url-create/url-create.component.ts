@@ -1,21 +1,24 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UrlService } from 'src/app/core/services/url.service';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { ShortUrlResponse } from 'src/app/models/short-url.model';
 import { Clipboard } from '@angular/cdk/clipboard';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-url-create',
   templateUrl: './url-create.component.html',
   styleUrls: ['./url-create.component.scss'],
 })
-export class UrlCreateComponent implements OnInit {
+export class UrlCreateComponent implements OnInit, OnDestroy {
   urlForm!: FormGroup;
   isLoading = false;
   createdUrl: ShortUrlResponse | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -31,6 +34,12 @@ export class UrlCreateComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.watchAuthState();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private initForm(): void {
@@ -53,6 +62,22 @@ export class UrlCreateComponent implements OnInit {
     }
   }
 
+  private watchAuthState(): void {
+    this.authService.isLoggedIn$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((isLoggedIn) => {
+        const hasControl = this.urlForm.contains('expiresInHours');
+        if (isLoggedIn && !hasControl) {
+          this.urlForm.addControl(
+            'expiresInHours',
+            this.fb.control(168, [Validators.required]) // Default to 1 week (168 hours)
+          );
+        } else if (!isLoggedIn && hasControl) {
+          this.urlForm.removeControl('expiresInHours');
+        }
+      });
+  }
+
   onSubmit(): void {
     if (this.urlForm.invalid) {
       this.urlForm.markAllAsTouched();
@@ -62,7 +87,11 @@ export class UrlCreateComponent implements OnInit {
     const originalUrl = this.urlForm.get('originalUrl')?.value;
     const expiresInHours = this.isAuthenticated ? this.urlForm.get('expiresInHours')?.value : undefined;
 
-    this.urlService.createShortUrl(originalUrl, expiresInHours).subscribe({
+    const createRequest = this.isAuthenticated
+      ? this.urlService.createShortUrl(originalUrl, expiresInHours)
+      : this.urlService.createAnonymousShortUrl(originalUrl);
+
+    createRequest.subscribe({
       next: (response: ShortUrlResponse) => {
         this.isLoading = false;
         this.createdUrl = response;

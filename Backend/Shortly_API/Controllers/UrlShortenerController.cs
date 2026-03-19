@@ -35,31 +35,43 @@ namespace Shortly_API.Controllers
         }
 
         // POST /api/urlshortener/urls
-        // Endpoint que permite tanto usuarios autenticados como anónimos
+        // Endpoint solo para usuarios autenticados
         [HttpPost("urls")]
-        [AllowAnonymous] // Permite acceso sin autenticación
+        [Authorize]
         [EnableRateLimiting("authenticated")]
+        [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ShortUrlResponse>> CreateShortUrlAuthenticated([FromBody] CreateShortUrlRequest request)
+        {
+            var userId = GetUserIdFromToken();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { message = "User ID not found in token." });
+            }
+
+            var result = await _urlShortenerService.CreateShortUrlAsync(
+                request.OriginalUrl,
+                userId.Value,
+                request.ExpiresInHours);
+
+            return Ok(result);
+        }
+
+        // POST /api/urlshortener/urls/anonymous
+        // Endpoint para usuarios anónimos
+        [HttpPost("urls/anonymous")]
+        [AllowAnonymous]
+        [EnableRateLimiting("anonymous")]
         [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ShortUrlResponse>> CreateShortUrl([FromBody] CreateShortUrlRequest request)
+        public async Task<ActionResult<ShortUrlResponse>> CreateShortUrlAnonymous([FromBody] CreateAnonymousShortUrlRequest request)
         {
-            var userId = GetUserIdFromToken();
-
-            ShortUrlResponse result;
-
-            if (userId.HasValue)
-            {
-                // Usuario autenticado: URL con expiración opcional definida por el usuario
-                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl, userId.Value, request.ExpiresInHours);
-            }
-            else
-            {
-                // Usuario anónimo: URL con expiración de 24 horas
-                result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl);
-            }
-
+            var result = await _urlShortenerService.CreateShortUrlAsync(request.OriginalUrl);
             return Ok(result);
         }
 

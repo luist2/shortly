@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from './core/services/auth.service';
-import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -10,17 +9,8 @@ import { filter } from 'rxjs';
 })
 export class AppComponent {
   title = 'shortly-frontend';
-  hideLayout = false; // Ocultar navbar en login y register
 
-  constructor(private router: Router, private authService: AuthService) {
-    // Detectar cambio de rutas
-    this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
-      .subscribe(() => {
-        const publicRoutes = ['/login', '/register'];
-        this.hideLayout = publicRoutes.includes(this.router.url);
-      });
-  }
+  constructor(private router: Router, private authService: AuthService) {}
 
   isAuthenticated(): boolean {
     return this.authService.isAuthenticated();

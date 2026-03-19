@@ -37,6 +37,19 @@ export class UrlService {
   }
 
   /**
+   * Crea una nueva URL acortada para usuarios anónimos.
+   * @param originalUrl - URL original a acortar.
+   * @returns Observable con la respuesta del servidor que incluye el shortCode y la URL acortada.
+   */
+  createAnonymousShortUrl(originalUrl: string): Observable<ShortUrlResponse> {
+    const body: CreateShortUrlRequest = { originalUrl };
+    return this.http.post<ShortUrlResponse>(
+      `${this.apiUrl}/UrlShortener/urls/anonymous`,
+      body
+    );
+  }
+
+  /**
    * Obtiene todas las URLs acortadas del usuario autenticado con paginación.
    * @param page - Número de página (comienza en 1).
    * @param pageSize - Cantidad de elementos por página.
