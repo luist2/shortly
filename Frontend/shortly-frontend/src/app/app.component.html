@@ -1,6 +1,14 @@
 <mat-sidenav-container class="sidenav-container">
   <!-- SIDENAV real -->
   <mat-sidenav #drawer mode="over" class="mobile-sidenav">
+    <div class="sidenav-profile-header" *ngIf="isAuthenticated()">
+      <mat-icon class="profile-avatar">account_circle</mat-icon>
+      <div class="profile-info">
+        <span class="profile-email">{{ getUserEmail() }}</span>
+      </div>
+    </div>
+    <mat-divider *ngIf="isAuthenticated()"></mat-divider>
+
     <mat-nav-list>
       <a mat-list-item routerLink="/urls/new" (click)="drawer.close()">
         <mat-icon matListItemIcon>add_link</mat-icon>
