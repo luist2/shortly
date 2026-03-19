@@ -6,22 +6,24 @@
         <mat-icon matListItemIcon>add_link</mat-icon>
         <span matListItemTitle>New URL</span>
       </a>
-      <a mat-list-item routerLink="/dashboard" (click)="drawer.close()">
-        <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
-      </a>
-      <mat-divider></mat-divider>
-      <button mat-list-item (click)="logout()">
-        <mat-icon matListItemIcon>logout</mat-icon>
-        <span matListItemTitle>Logout</span>
-      </button>
+      <ng-container *ngIf="isAuthenticated()">
+        <a mat-list-item routerLink="/dashboard" (click)="drawer.close()">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          <span matListItemTitle>Dashboard</span>
+        </a>
+        <mat-divider></mat-divider>
+        <button mat-list-item (click)="logout()">
+          <mat-icon matListItemIcon>logout</mat-icon>
+          <span matListItemTitle>Logout</span>
+        </button>
+      </ng-container>
     </mat-nav-list>
   </mat-sidenav>
 
   <!-- TOOLBAR / NAVBAR -->
   <mat-sidenav-content>
     <mat-toolbar color="primary" class="toolbar">
-      <button mat-icon-button class="menu-button" (click)="drawer.toggle()">
+      <button mat-icon-button class="menu-button" (click)="drawer.toggle()" *ngIf="isAuthenticated()">
         <mat-icon>menu</mat-icon>
       </button>
 
