@@ -81,10 +81,12 @@
                   : 'status-chip status-inactive'
               "
             >
-              <mat-icon>{{
-                urlStats.isActive ? "check_circle" : "cancel"
-              }}</mat-icon>
-              {{ urlStats.isActive ? "Active" : "Inactive" }}
+              <span class="chip-content">
+                <mat-icon>{{
+                  urlStats.isActive ? "check_circle" : "cancel"
+                }}</mat-icon>
+                <span>{{ urlStats.isActive ? "Active" : "Inactive" }}</span>
+              </span>
             </mat-chip>
           </div>
         </div>

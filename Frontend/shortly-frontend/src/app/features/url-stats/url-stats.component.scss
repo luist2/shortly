@@ -111,16 +111,22 @@
       }
 
       .status-chip {
-        display: flex;
-        align-items: center;
-        gap: 6px;
         padding: 4px 12px;
         font-weight: 500;
+
+        .chip-content {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
 
         mat-icon {
           font-size: 18px;
           width: 18px;
           height: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         &.status-active {
