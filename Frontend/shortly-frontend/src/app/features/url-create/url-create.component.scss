@@ -1,5 +1,7 @@
 .create-container {
+  box-sizing: border-box;
   display: flex;
+  flex: 1;
   justify-content: center;
   align-items: center;
   min-height: calc(100vh - 64px);
@@ -225,6 +227,8 @@
 @media (max-width: 600px) {
   .create-container {
     padding: 12px;
+    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px); /* Better support for mobile address bars */
   }
 
   .create-card,
