@@ -1,6 +1,5 @@
-import { Component, Input, ViewChild, ElementRef } from '@angular/core';
-import { QRCodeComponent } from 'angularx-qrcode';
-import { SafeUrl } from '@angular/platform-browser';
+import { Component, Input, SecurityContext } from '@angular/core';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-qr-code',
@@ -14,30 +13,52 @@ export class AppQrCodeComponent {
   /** elementType activo para renderizar el QR. Se alterna para disparar descargas. */
   elementType: 'img' | 'svg' = 'img';
 
-  /** URL del QR generado por la librería (para descarga) */
+  /** URL del QR generado por la libreria (para descarga) */
   qrCodeUrl: SafeUrl | null = null;
+
+  private pendingDownloadFilename: string | null = null;
+
+  constructor(private sanitizer: DomSanitizer) {}
 
   onQrCodeUrlChange(url: SafeUrl): void {
     this.qrCodeUrl = url;
+    if (!this.pendingDownloadFilename) {
+      return;
+    }
+
+    this.downloadFromSafeUrl(url, this.pendingDownloadFilename);
+    this.pendingDownloadFilename = null;
   }
 
   downloadPng(): void {
-    this.elementType = 'img';
-    // Necesitamos esperar un tick para que la librería regenere el QR con elementType='img'
-    setTimeout(() => {
-      if (this.qrCodeUrl) {
-        this.triggerDownload(this.qrCodeUrl as string, 'qr-code.png');
-      }
-    }, 100);
+    this.requestDownload('img', 'qr-code.png');
   }
 
   downloadSvg(): void {
-    this.elementType = 'svg';
-    setTimeout(() => {
-      if (this.qrCodeUrl) {
-        this.triggerDownload(this.qrCodeUrl as string, 'qr-code.svg');
-      }
-    }, 100);
+    this.requestDownload('svg', 'qr-code.svg');
+  }
+
+  private requestDownload(type: 'img' | 'svg', filename: string): void {
+    this.pendingDownloadFilename = filename;
+
+    if (this.elementType === type && this.qrCodeUrl) {
+      this.downloadFromSafeUrl(this.qrCodeUrl, filename);
+      this.pendingDownloadFilename = null;
+      return;
+    }
+
+    this.elementType = type;
+  }
+
+  private downloadFromSafeUrl(url: SafeUrl, filename: string): void {
+    const sanitized = this.sanitizer.sanitize(SecurityContext.URL, url);
+    if (!sanitized) {
+      // eslint-disable-next-line no-console
+      console.error('[qr] Unable to sanitize QR code URL for download');
+      return;
+    }
+
+    this.triggerDownload(sanitized, filename);
   }
 
   private triggerDownload(url: string, filename: string): void {
