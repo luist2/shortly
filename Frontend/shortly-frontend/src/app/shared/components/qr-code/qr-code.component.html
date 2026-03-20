@@ -1,0 +1,25 @@
+<div class="qr-wrapper">
+  <div class="qr-image-container">
+    <qrcode
+      [qrdata]="url"
+      [width]="size"
+      [elementType]="elementType"
+      [margin]="2"
+      [colorDark]="'#1a1a2e'"
+      [colorLight]="'#ffffff'"
+      [errorCorrectionLevel]="'M'"
+      (qrCodeURL)="onQrCodeUrlChange($event)"
+    ></qrcode>
+  </div>
+
+  <div class="qr-actions">
+    <button mat-stroked-button class="download-btn" (click)="downloadPng()" matTooltip="Download as PNG (image)">
+      <mat-icon>image</mat-icon>
+      PNG
+    </button>
+    <button mat-stroked-button class="download-btn" (click)="downloadSvg()" matTooltip="Download as SVG (vector)">
+      <mat-icon>description</mat-icon>
+      SVG
+    </button>
+  </div>
+</div>

@@ -16,12 +16,16 @@ import { MatSelectModule } from '@angular/material/select';
 // CDK
 import { ClipboardModule } from '@angular/cdk/clipboard';
 
+// Third-party
+import { QRCodeModule } from 'angularx-qrcode';
+
 // Components
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
+import { AppQrCodeComponent } from './components/qr-code/qr-code.component';
 
 @NgModule({
-  declarations: [ConfirmDialogComponent, LoadingSpinnerComponent],
+  declarations: [ConfirmDialogComponent, LoadingSpinnerComponent, AppQrCodeComponent],
   imports: [
     CommonModule,
     MatDialogModule,
@@ -31,6 +35,7 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    QRCodeModule,
   ],
   exports: [
     // Angular Common
@@ -54,6 +59,8 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     // Componentes compartidos
     ConfirmDialogComponent,
     LoadingSpinnerComponent,
+    AppQrCodeComponent,
+    QRCodeModule,
   ],
 })
 export class SharedModule { }

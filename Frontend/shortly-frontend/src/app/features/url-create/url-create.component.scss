@@ -175,6 +175,12 @@
       }
     }
 
+    .qr-section {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
     .action-buttons {
       display: flex;
       flex-direction: column;

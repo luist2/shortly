@@ -93,6 +93,17 @@
       </mat-card-content>
     </mat-card>
 
+    <!-- Card: QR Code -->
+    <mat-card class="qr-card">
+      <mat-card-header>
+        <mat-card-title>QR Code</mat-card-title>
+        <mat-card-subtitle>Scan or download your short URL as a QR code</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <app-qr-code [url]="urlStats.shortUrl" [size]="200"></app-qr-code>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Card: Métricas principales (5.2.2 Métricas Core) -->
     <mat-card class="metrics-card">
       <mat-card-header>

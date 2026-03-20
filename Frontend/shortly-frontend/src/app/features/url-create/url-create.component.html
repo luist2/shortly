@@ -95,6 +95,11 @@
         </div>
       </div>
 
+      <!-- QR Code -->
+      <div class="qr-section">
+        <app-qr-code [url]="createdUrl.shortUrl" [size]="160"></app-qr-code>
+      </div>
+
       <!-- Botones de Acción -->
       <div class="action-buttons">
         <button mat-raised-button color="primary" class="action-btn" (click)="copyToClipboard()">
