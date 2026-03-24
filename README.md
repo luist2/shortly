@@ -68,6 +68,18 @@ Debes configurar los bloques críticos como tu base de datos y la llave secreta 
     "BaseDomain": "https://localhost:7161", 
     "DefaultRole": "User"
   },
+  "ApiSettings": {
+    "RateLimiting": {
+      "GlobalPermitLimit": 60,
+      "GlobalWindowMinutes": 1,
+      "AuthPermitLimit": 5,
+      "AuthWindowMinutes": 1,
+      "UrlCreation": {
+        "AuthenticatedPermitLimit": 100,
+        "AnonymousPermitLimit": 20
+      }
+    }
+  },
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=shortly_db;Username=TU_USUARIO;Password=TU_PASSWORD"
   }
@@ -112,7 +124,7 @@ La API de backend (.NET 8) está estructurada para priorizar escalabilidad, segu
 - **Inyección de Dependencias (DI)**: Ampliamente implementada para mantener un bajo acoplamiento entre servicios (ej. `IAuthService`, `IUrlShortenerService`).
 - **Seguridad Moderna**: 
   - Almacenamiento del *Refresh Token* mitigando ataques XSS mediante el uso de cookies **HTTP-Only** configuradas con opciones estrictas (`SameSite=None`, `Secure`).
-  - Protección de endpoints de creación contra ataques de fuerza bruta utilizando el middleware de **Rate Limiting** nativo de .NET 8.
+  - Rate limiting nativo de .NET 8 con límite global por IP y políticas específicas para autenticación y creación de URLs.
 - **Rendimiento**: Respuestas paginadas desde la base de datos limitando sobrecargas en memoria, y gestión de configuraciones segregadas por dominio mediante el patrón `Options`.
 
 ## Endpoints principales
@@ -123,11 +135,13 @@ POST   /api/auth/register               # Registro de usuario
 POST   /api/auth/login                  # Inicio de sesión
 POST   /api/auth/refresh-tokens         # Refrescar tokens
 POST   /api/auth/logout                 # Cerrar sesión
+POST   /api/auth/logout-all             # Cerrar todas las sesiones
 ```
 
 **Gestión de URLs**
 ```http
 POST   /api/urlshortener/urls           # Crear URL corta
+POST   /api/urlshortener/urls/anonymous # Crear URL corta (anónimo)
 GET    /api/urlshortener/urls           # Listar URLs del usuario
 GET    /api/urlshortener/urls/{code}    # Obtener estadísticas
 DELETE /api/urlshortener/urls/{code}    # Eliminar URL
