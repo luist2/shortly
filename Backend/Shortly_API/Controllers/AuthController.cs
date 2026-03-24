@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Shortly_API.Middleware;
 using Shortly_API.Models;
 using Shortly_API.Services;
@@ -33,6 +34,7 @@ namespace Shortly_API.Controllers
         /// <param name="request">User registration payload.</param>
         /// <returns>Created user information or conflict when email is already used.</returns>
         [HttpPost("register")]
+        [EnableRateLimiting("auth-strict")]
         [ProducesResponseType(typeof(UserResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -54,6 +56,7 @@ namespace Shortly_API.Controllers
         /// <param name="request">User login payload.</param>
         /// <returns>Access token in body and refresh token in HttpOnly cookie.</returns>
         [HttpPost("login")]
+        [EnableRateLimiting("auth-strict")]
         [ProducesResponseType(typeof(TokenResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -75,6 +78,7 @@ namespace Shortly_API.Controllers
         /// </summary>
         /// <returns>New access token and rotated refresh cookie when applicable.</returns>
         [HttpPost("refresh-tokens")]
+        [EnableRateLimiting("auth-strict")]
         [ProducesResponseType(typeof(TokenResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]

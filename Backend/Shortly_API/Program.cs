@@ -109,8 +109,40 @@ builder.Services.AddRateLimiter(options =>
         await httpContext.Response.WriteAsJsonAsync(errorResponse, token);
     };
 
+    var rateLimitingSection = builder.Configuration.GetSection("ApiSettings:RateLimiting");
+
+    // Límite global por IP para cubrir todos los endpoints por defecto
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ipAddress,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = rateLimitingSection.GetValue<int>("GlobalPermitLimit"),
+                Window = TimeSpan.FromMinutes(rateLimitingSection.GetValue<int>("GlobalWindowMinutes")),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+    // Política estricta para endpoints de autenticación (por IP)
+    options.AddPolicy("auth-strict", context =>
+    {
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ipAddress,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = rateLimitingSection.GetValue<int>("AuthPermitLimit"),
+                Window = TimeSpan.FromMinutes(rateLimitingSection.GetValue<int>("AuthWindowMinutes")),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
     // Política para usuarios autenticados: 100 por hora
-    options.AddPolicy("authenticated", context =>
+    options.AddPolicy("url-create-authenticated", context =>
     {
         var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -120,7 +152,7 @@ builder.Services.AddRateLimiter(options =>
                 partitionKey: userId,
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = builder.Configuration.GetValue<int>("ApiSettings:RateLimiting:AuthenticatedPermitLimit"),
+                    PermitLimit = rateLimitingSection.GetValue<int>("UrlCreation:AuthenticatedPermitLimit"),
                     Window = TimeSpan.FromHours(1),
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
@@ -132,7 +164,7 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: "unknown-user",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = builder.Configuration.GetValue<int>("ApiSettings:RateLimiting:AnonymousPermitLimit"),
+                PermitLimit = rateLimitingSection.GetValue<int>("UrlCreation:AnonymousPermitLimit"),
                 Window = TimeSpan.FromHours(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
@@ -140,14 +172,14 @@ builder.Services.AddRateLimiter(options =>
     });
 
     // Política para usuarios anónimos: límite por IP
-    options.AddPolicy("anonymous", context =>
+    options.AddPolicy("url-create-anonymous", context =>
     {
         var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: ipAddress,
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = builder.Configuration.GetValue<int>("ApiSettings:RateLimiting:AnonymousPermitLimit"),
+                PermitLimit = rateLimitingSection.GetValue<int>("UrlCreation:AnonymousPermitLimit"),
                 Window = TimeSpan.FromHours(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0

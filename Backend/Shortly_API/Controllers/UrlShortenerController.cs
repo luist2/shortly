@@ -38,7 +38,7 @@ namespace Shortly_API.Controllers
         // Endpoint solo para usuarios autenticados
         [HttpPost("urls")]
         [Authorize]
-        [EnableRateLimiting("authenticated")]
+        [EnableRateLimiting("url-create-authenticated")]
         [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -64,7 +64,7 @@ namespace Shortly_API.Controllers
         // Endpoint para usuarios anónimos
         [HttpPost("urls/anonymous")]
         [AllowAnonymous]
-        [EnableRateLimiting("anonymous")]
+        [EnableRateLimiting("url-create-anonymous")]
         [ProducesResponseType(typeof(ShortUrlResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
