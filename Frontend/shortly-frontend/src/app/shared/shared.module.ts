@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatDividerModule } from '@angular/material/divider';
 
 // CDK
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -35,6 +36,7 @@ import { AppQrCodeComponent } from './components/qr-code/qr-code.component';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDividerModule,
     QRCodeModule,
   ],
   exports: [
@@ -54,6 +56,7 @@ import { AppQrCodeComponent } from './components/qr-code/qr-code.component';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatDividerModule,
     MatDialogModule,
 
     // Componentes compartidos
