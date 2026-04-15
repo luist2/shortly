@@ -1,1 +1,147 @@
+.link-status-container {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 64px);
+  width: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
 
+.status-card {
+  width: 100%;
+  max-width: 560px;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in;
+
+  mat-card-header {
+    margin-bottom: 16px;
+    align-items: center;
+
+    .status-avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: white;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    mat-card-title {
+      margin-bottom: 6px;
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.2;
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+
+  mat-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.status-message {
+  margin: 0;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.78);
+}
+
+.meta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.meta-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.meta-value {
+  font-family: "Roboto Mono", Consolas, "Courier New", monospace;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.87);
+  word-break: break-word;
+}
+
+.actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.status-not-found {
+  background-color: #ef5350;
+}
+
+.status-expired {
+  background-color: #f57c00;
+}
+
+.status-invalid {
+  background-color: #d84315;
+}
+
+.status-server-error {
+  background-color: #546e7a;
+}
+
+.status-unknown {
+  background-color: #757575;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .link-status-container {
+    padding: 12px;
+    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px);
+  }
+
+  .status-card {
+    padding: 16px;
+
+    mat-card-header {
+      mat-card-title {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .actions {
+    flex-direction: column;
+
+    a {
+      width: 100%;
+    }
+  }
+}

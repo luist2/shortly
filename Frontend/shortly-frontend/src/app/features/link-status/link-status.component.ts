@@ -11,8 +11,10 @@ type LinkStatusReason = 'not-found' | 'expired' | 'invalid' | 'server-error' | '
 export class LinkStatusComponent implements OnInit {
   reason: LinkStatusReason = 'unknown';
   shortCode: string | null = null;
-  title = 'Unable to open short link';
-  message = 'This short link could not be processed.';
+  icon = 'error_outline';
+  statusClass = 'status-unknown';
+  title = 'Link unavailable';
+  message = 'We could not open this link.';
 
   constructor(private route: ActivatedRoute) {}
 
@@ -40,24 +42,34 @@ export class LinkStatusComponent implements OnInit {
   private setMessagesByReason(): void {
     switch (this.reason) {
       case 'not-found':
-        this.title = 'Short link not found';
-        this.message = 'This short link does not exist or is no longer available.';
+        this.title = 'Link not found';
+        this.message = 'This link does not exist.';
+        this.icon = 'link_off';
+        this.statusClass = 'status-not-found';
         return;
       case 'expired':
-        this.title = 'Short link expired';
-        this.message = 'This short link has expired and cannot be used anymore.';
+        this.title = 'Link expired';
+        this.message = 'This link has expired.';
+        this.icon = 'schedule';
+        this.statusClass = 'status-expired';
         return;
       case 'invalid':
-        this.title = 'Invalid short link';
-        this.message = 'The short link format is invalid.';
+        this.title = 'Invalid link';
+        this.message = 'This link format is invalid.';
+        this.icon = 'error_outline';
+        this.statusClass = 'status-invalid';
         return;
       case 'server-error':
-        this.title = 'Temporary server issue';
-        this.message = 'We could not process this short link right now. Please try again later.';
+        this.title = 'Server issue';
+        this.message = 'Please try again in a moment.';
+        this.icon = 'cloud_off';
+        this.statusClass = 'status-server-error';
         return;
       default:
-        this.title = 'Unable to open short link';
-        this.message = 'This short link could not be processed.';
+        this.title = 'Link unavailable';
+        this.message = 'We could not open this link.';
+        this.icon = 'help_outline';
+        this.statusClass = 'status-unknown';
     }
   }
 }

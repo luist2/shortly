@@ -1,13 +1,24 @@
-<div>
-  <h1>{{ title }}</h1>
-  <p>{{ message }}</p>
+<div class="link-status-container">
+  <mat-card class="status-card">
+    <mat-card-header>
+      <div mat-card-avatar class="status-avatar" [ngClass]="statusClass">
+        <mat-icon>{{ icon }}</mat-icon>
+      </div>
+      <mat-card-title>{{ title }}</mat-card-title>
+    </mat-card-header>
 
-  <p *ngIf="shortCode">
-    Code: <strong>{{ shortCode }}</strong>
-  </p>
+    <mat-card-content>
+      <p class="status-message">{{ message }}</p>
 
-  <div>
-    <a mat-button color="primary" routerLink="/">Go to home</a>
-    <a mat-button color="primary" routerLink="/urls/new">Create short URL</a>
-  </div>
+      <div class="meta-block" *ngIf="shortCode">
+        <span class="meta-label">Code</span>
+        <span class="meta-value">{{ shortCode }}</span>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions class="actions">
+      <a mat-raised-button color="primary" routerLink="/">Home</a>
+      <a mat-stroked-button color="primary" routerLink="/urls/new">New URL</a>
+    </mat-card-actions>
+  </mat-card>
 </div>
