@@ -6,7 +6,7 @@
   align-items: center;
   min-height: calc(100vh - 64px);
   width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--app-surface-bg);
   padding: 20px;
 }
 
@@ -32,7 +32,7 @@
       gap: 8px;
       font-size: 32px;
       font-weight: 600;
-      color: #667eea;
+      color: var(--app-accent);
       margin-bottom: 8px;
 
       .title-icon {
@@ -157,10 +157,10 @@
     justify-content: space-between;
     gap: 12px;
     padding: 16px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--app-accent-gradient);
     border-radius: 10px;
     margin-bottom: 10px;
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 16px rgba(var(--app-accent-rgb), 0.3);
 
     .short-url-link {
       font-size: 18px;

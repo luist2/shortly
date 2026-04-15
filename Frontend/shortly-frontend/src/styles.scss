@@ -8,6 +8,16 @@ body {
   overflow-x: hidden;
 }
 
+:root {
+  --app-surface-bg:
+    radial-gradient(1200px 520px at 10% -20%, rgba(37, 99, 235, 0.14), transparent 60%),
+    radial-gradient(900px 420px at 100% 0%, rgba(14, 165, 233, 0.12), transparent 55%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  --app-accent: #2563eb;
+  --app-accent-rgb: 37, 99, 235;
+  --app-accent-gradient: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+}
+
 * {
   box-sizing: border-box;
 }
