@@ -40,3 +40,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Local planning notes (do not commit)
+/SHORT_URL_ERROR_HANDLING_TODO.md

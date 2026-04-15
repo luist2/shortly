@@ -12,6 +12,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { AuthModule } from './features/auth/auth.module';
 import { DashboardModule } from './features/dashboard/dashboard.module';
 import { UrlCreateModule } from './features/url-create/url-create.module';
+import { LinkStatusModule } from './features/link-status/link-status.module';
 
 // Material Modules
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -36,6 +37,7 @@ import { MatListModule } from '@angular/material/list';
     DashboardModule,
     UrlCreateModule,
     UrlStatsModule,
+    LinkStatusModule,
 
     // Material Modules
     MatToolbarModule,

@@ -7,6 +7,7 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { UrlCreateComponent } from './features/url-create/url-create.component';
 import { UrlStatsComponent } from './features/url-stats/url-stats.component';
+import { LinkStatusComponent } from './features/link-status/link-status.component';
 
 const routes: Routes = [
   // Ruta raíz - Vista pública de creación
@@ -26,6 +27,10 @@ const routes: Routes = [
     path: 'register',
     component: RegisterComponent,
     canActivate: [PublicGuard],
+  },
+  {
+    path: 'link-status',
+    component: LinkStatusComponent,
   },
 
   // RUTAS PROTEGIDAS (con AuthGuard)

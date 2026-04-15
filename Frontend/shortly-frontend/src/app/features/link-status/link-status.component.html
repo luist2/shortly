@@ -1,0 +1,13 @@
+<div>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+
+  <p *ngIf="shortCode">
+    Code: <strong>{{ shortCode }}</strong>
+  </p>
+
+  <div>
+    <a mat-button color="primary" routerLink="/">Go to home</a>
+    <a mat-button color="primary" routerLink="/urls/new">Create short URL</a>
+  </div>
+</div>
