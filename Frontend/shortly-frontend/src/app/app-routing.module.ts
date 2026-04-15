@@ -49,6 +49,10 @@ const routes: Routes = [
     component: UrlStatsComponent,
     canActivate: [AuthGuard],
   },
+  {
+    path: '**',
+    redirectTo: '',
+  },
 ];
 
 @NgModule({
