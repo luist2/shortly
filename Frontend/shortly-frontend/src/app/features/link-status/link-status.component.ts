@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { AuthService } from 'src/app/core/services/auth.service';
 
 type LinkStatusReason = 'not-found' | 'expired' | 'invalid' | 'server-error' | 'unknown';
 
@@ -16,7 +17,11 @@ export class LinkStatusComponent implements OnInit {
   title = 'Link unavailable';
   message = 'We could not open this link.';
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(private route: ActivatedRoute, private authService: AuthService) {}
+
+  get isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
 
   ngOnInit(): void {
     const reasonParam = this.route.snapshot.queryParamMap.get('reason') ?? '';

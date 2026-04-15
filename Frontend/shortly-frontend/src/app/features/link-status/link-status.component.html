@@ -17,8 +17,8 @@
     </mat-card-content>
 
     <mat-card-actions class="actions">
-      <a mat-raised-button color="primary" routerLink="/">Home</a>
-      <a mat-stroked-button color="primary" routerLink="/urls/new">New URL</a>
+      <a mat-raised-button color="primary" routerLink="/">Create URL</a>
+      <a *ngIf="isAuthenticated" mat-stroked-button color="primary" routerLink="/dashboard">Dashboard</a>
     </mat-card-actions>
   </mat-card>
 </div>
