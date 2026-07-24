@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: shortly-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: shortly
+      POSTGRES_PASSWORD: shortly_password
+      POSTGRES_DB: shortly_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - shortly_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  shortly_postgres_data:
