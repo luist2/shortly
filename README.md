@@ -35,7 +35,7 @@ Un acortador de URLs moderno y eficiente construido con .NET y Angular.
 ### Requisitos
 
 - .NET 8 SDK
-- PostgreSQL
+- PostgreSQL (puedes usar el `docker-compose.yml` incluido en la raíz del proyecto)
 - Node.js 18+
 - Angular CLI (`npm install -g @angular/cli`)
 
@@ -85,6 +85,8 @@ Debes configurar los bloques críticos como tu base de datos y la llave secreta 
   }
 }
 ```
+
+> **Levantar la base de datos con Docker**: si prefieres no instalar PostgreSQL localmente, puedes levantar el contenedor incluido en el proyecto ejecutando `docker compose up -d` desde la raíz del repositorio. Esto crea una base `shortly_db` con usuario `shortly` y password `shortly_password` en el puerto `5432`, valores que puedes usar directamente en `ConnectionStrings.DefaultConnection` de arriba.
 
 ```bash
 # Instalar paquetes dependencias
