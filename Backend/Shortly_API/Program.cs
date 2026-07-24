@@ -97,6 +97,12 @@ builder.Services.AddRateLimiter(options =>
     {
         var httpContext = context.HttpContext;
 
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out TimeSpan retryAfter))
+        {
+            var retryAfterSeconds = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds));
+            httpContext.Response.Headers["Retry-After"] = retryAfterSeconds.ToString();
+        }
+
         httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         httpContext.Response.ContentType = "application/json";
 
@@ -136,6 +142,22 @@ builder.Services.AddRateLimiter(options =>
             {
                 PermitLimit = rateLimitingSection.GetValue<int>("AuthPermitLimit"),
                 Window = TimeSpan.FromMinutes(rateLimitingSection.GetValue<int>("AuthWindowMinutes")),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+
+    // Política para renovar sesiones. Es menos restrictiva que login/registro,
+    // ya que requiere una cookie de refresh válida, pero sigue protegida por IP.
+    options.AddPolicy("auth-refresh", context =>
+    {
+        var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ipAddress,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = rateLimitingSection.GetValue<int>("RefreshPermitLimit"),
+                Window = TimeSpan.FromMinutes(rateLimitingSection.GetValue<int>("RefreshWindowMinutes")),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 0
             });
@@ -197,9 +219,10 @@ builder.Services.AddScoped<IUrlShortenerService, UrlShortenerService>();
 
 var app = builder.Build();
 
-// Aplicar migraciones
-using (var scope = app.Services.CreateScope())
+// Aplicar migraciones fuera de las pruebas de integración.
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
 }
@@ -242,3 +265,5 @@ app.MapControllerRoute(
 );
 
 app.Run();
+
+public partial class Program { }

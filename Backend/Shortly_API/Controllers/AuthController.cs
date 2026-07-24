@@ -78,7 +78,7 @@ namespace Shortly_API.Controllers
         /// </summary>
         /// <returns>New access token and rotated refresh cookie when applicable.</returns>
         [HttpPost("refresh-tokens")]
-        [EnableRateLimiting("auth-strict")]
+        [EnableRateLimiting("auth-refresh")]
         [ProducesResponseType(typeof(TokenResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]

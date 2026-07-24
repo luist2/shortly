@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject, map } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Observable, tap, BehaviorSubject, map, retry, throwError, timer } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { jwtDecode } from 'jwt-decode';
 
@@ -65,7 +65,29 @@ export class AuthService {
       .post<TokenResponse>(`${this.apiUrl}/Auth/refresh-tokens`, {}, {
         withCredentials: true,
       })
+      .pipe(
+        retry({
+          count: 1,
+          delay: (error: HttpErrorResponse) => {
+            if (error.status !== 429) {
+              return throwError(() => error);
+            }
+
+            return timer(this.getRetryAfterMilliseconds(error));
+          },
+        }),
+      )
       .pipe(tap((response) => this.handleAuthenticationSuccess(response)));
+  }
+
+  private getRetryAfterMilliseconds(error: HttpErrorResponse): number {
+    const retryAfter = Number(error.headers?.get('Retry-After'));
+
+    if (!Number.isFinite(retryAfter) || retryAfter <= 0) {
+      return 60_000;
+    }
+
+    return Math.ceil(retryAfter * 1_000);
   }
 
   getToken(): string | null {
